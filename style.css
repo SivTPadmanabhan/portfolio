@@ -151,57 +151,77 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 .dot-sep { color: var(--color-dim); margin-inline: 10px; }
 
-/* ---------- Liquid glass (D30) ---------- */
-/* Three stacked layers, ported from the supplied React component:
-   warp (backdrop blur + SVG turbulence distortion), tint (frosted
-   white film), shine (inset specular highlights). Content sits on top. */
+/* ---------- Liquid glass, Apple Tahoe port (D32) ---------- */
+/* Dark-tinted glass built from three ported pieces: a convex lens
+   displacement filter that refracts the hero shader behind each element
+   (#hero-lens, wired up by main.js), a directional multi-layer inset
+   bevel lit from a fixed top-center light (::before, box-shadow written
+   by main.js as --glass-bevel), and a hairline 1px conic-gradient rim
+   (::after, gradient from the lens map's refraction profile). */
 .glass-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
 
 .glass {
   position: relative;
   isolation: isolate;
   border-radius: 24px;
-  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.2), 0 0 20px rgba(0, 0, 0, 0.1);
+  background: rgba(8, 10, 16, 0.38);
+  -webkit-backdrop-filter: blur(2px) saturate(1.8);
+  backdrop-filter: blur(2px) saturate(1.8);
 }
 
-.glass__warp,
-.glass__tint,
-.glass__shine {
+.glass::before {
+  content: "";
   position: absolute;
   inset: 0;
   border-radius: inherit;
   pointer-events: none;
-}
-.glass__warp {
   z-index: 0;
-  overflow: hidden;
-  -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px);
-  filter: url(#glass-distortion);
-  isolation: isolate;
-}
-.glass__tint {
-  z-index: 1;
-  background: rgba(255, 255, 255, 0.25);
-}
-.glass__shine {
-  z-index: 2;
-  box-shadow: inset 2px 2px 1px 0 rgba(255, 255, 255, 0.5),
-              inset -1px -1px 1px 1px rgba(255, 255, 255, 0.5);
-}
-.glass > :not(.glass__warp):not(.glass__tint):not(.glass__shine) {
-  position: relative;
-  z-index: 3;
+  /* fallback bevel (light straight above) until main.js writes the
+     per-element stack from its actual angle to the scene light */
+  box-shadow: var(--glass-bevel,
+    inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 -3px 0 -2px rgba(255, 255, 255, 0.54),
+    inset 0 2px 0 -2px rgba(255, 255, 255, 0.48),
+    inset 0 8px 1px -6px rgba(255, 255, 255, 0.36),
+    inset 0 1px 4px 0 rgba(0, 0, 0, 0.12),
+    inset 0 -2.5px 0 -2px rgba(0, 0, 0, 0.2),
+    inset 0 -3px 4px -2px rgba(0, 0, 0, 0.2),
+    0 4px 10px 0 rgba(0, 0, 0, 0.15),
+    0 9px 18px 0 rgba(0, 0, 0, 0.1));
 }
 
-/* Glass buttons: springy grow on hover, settle on press (hover/click only) */
+.glass::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  z-index: 2;
+  padding: 1px;
+  background: var(--rim-gradient, conic-gradient(from 0deg at 50% 50%,
+    rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.1) 25%,
+    rgba(255, 255, 255, 0.35) 50%, rgba(255, 255, 255, 0.1) 75%,
+    rgba(255, 255, 255, 0.5)));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: calc(0.62 + var(--rim-intensity, 0.6) * 0.24);
+}
+
+.glass > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Glass buttons: springy scale on hover, settle on press (hover/click only) */
 .btn-glass {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   border: none;
   border-radius: var(--radius-pill);
   padding: 14px 30px;
-  background: transparent;
   cursor: pointer;
   overflow: hidden;
   font-family: var(--font-sans);
@@ -210,15 +230,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   letter-spacing: 0.025em;
   text-transform: uppercase;
   color: var(--color-chalk);
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
-  transition: transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 2.2),
-              box-shadow 0.7s cubic-bezier(0.175, 0.885, 0.32, 2.2);
+  transform-origin: center;
+  transition: transform 0.4s cubic-bezier(0.4, 1.5, 0.3, 1);
 }
-.btn-glass:hover {
-  transform: scale(1.06);
-  box-shadow: 0 6px 6px rgba(0, 0, 0, 0.25), 0 0 26px rgba(255, 255, 255, 0.12);
-}
-.btn-glass:active { transform: scale(0.97); }
+.btn-glass:hover { transform: scale(1.04); }
+.btn-glass:active { transform: scale(0.96); }
 
 .btn-glass__label {
   display: inline-flex;
@@ -349,7 +365,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   box-shadow: 0 0 8px rgba(255, 179, 0, 0.8);
 }
 
-/* Glass panel behind the front-and-center intro (D30, D31) */
+/* Glass panel behind the front-and-center intro (D31, D32) */
 .hero__glass {
   border-radius: 36px;
   padding: var(--space-4) var(--space-6);
@@ -357,11 +373,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   margin-bottom: var(--space-4);
 }
 
+/* No text-shadow here: the dark glass tint carries the contrast, and a
+   blurred shadow on the rotator items leaks past the overflow mask,
+   ghosting the outgoing phrase (D33) */
 .hero__name {
   font-size: clamp(30px, 5.2vw, 68px);
   line-height: 1.15;
   letter-spacing: -0.035em;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55), 0 2px 18px rgba(0, 0, 0, 0.5);
+  text-shadow: none;
 }
 
 /* One-shot phrase rotator: scrolls through the intro lines once after
@@ -380,6 +399,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   display: block;
   height: 1.15em;
   white-space: nowrap;
+}
+
+/* Actions sit right under the glass panel; the paragraphs follow (D33) */
+.hero__actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-6);
 }
 
 .hero__title {
@@ -401,15 +430,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   max-width: 620px;
   font-size: 16px;
   color: var(--color-dim);
-  margin-bottom: var(--space-6);
-}
-
-.hero__actions {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-  flex-wrap: wrap;
 }
 
 /* ---------- Scroll badge ---------- */

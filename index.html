@@ -13,21 +13,18 @@
 </head>
 <body>
 
-  <!-- SVG filter for the liquid glass distortion layer (referenced by .glass__warp) -->
+  <!-- Lens filter for the liquid glass: main.js injects one feImage
+       (a convex displacement map) per glass element in the hero, then the
+       merged map warps the hero shader behind them (D32) -->
   <svg class="glass-defs" aria-hidden="true" focusable="false">
-    <filter id="glass-distortion" x="0%" y="0%" width="100%" height="100%" filterUnits="objectBoundingBox">
-      <feTurbulence type="fractalNoise" baseFrequency="0.001 0.005" numOctaves="1" seed="17" result="turbulence"/>
-      <feComponentTransfer in="turbulence" result="mapped">
-        <feFuncR type="gamma" amplitude="1" exponent="10" offset="0.5"/>
-        <feFuncG type="gamma" amplitude="0" exponent="1" offset="0"/>
-        <feFuncB type="gamma" amplitude="0" exponent="1" offset="0.5"/>
-      </feComponentTransfer>
-      <feGaussianBlur in="turbulence" stdDeviation="3" result="softMap"/>
-      <feSpecularLighting in="softMap" surfaceScale="5" specularConstant="1" specularExponent="100" lightingColor="white" result="specLight">
-        <fePointLight x="-200" y="-200" z="300"/>
-      </feSpecularLighting>
-      <feComposite in="specLight" operator="arithmetic" k1="0" k2="1" k3="1" k4="0" result="litImage"/>
-      <feDisplacementMap in="SourceGraphic" in2="softMap" scale="200" xChannelSelector="R" yChannelSelector="G"/>
+    <filter id="hero-lens" x="0" y="0" width="100%" height="100%"
+            filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse"
+            color-interpolation-filters="sRGB">
+      <feFlood flood-color="rgb(128,128,128)" result="neutral"/>
+      <feMerge result="dispMap">
+        <feMergeNode in="neutral"/>
+      </feMerge>
+      <feDisplacementMap in="SourceGraphic" in2="dispMap" scale="35" xChannelSelector="R" yChannelSelector="G"/>
     </filter>
   </svg>
 
@@ -47,38 +44,32 @@
     <div class="container hero__content">
       <p class="status-label rise" style="--d:.05s"><span class="status-label__dot" aria-hidden="true"></span>Open to internships and roles</p>
       <div class="hero__glass glass rise" style="--d:.15s">
-        <span class="glass__warp" aria-hidden="true"></span>
-        <span class="glass__tint" aria-hidden="true"></span>
-        <span class="glass__shine" aria-hidden="true"></span>
         <h1 class="hero__name" aria-label="Hey, I'm Sivaditya.">
           <span aria-hidden="true">Hey, I'm</span>
           <span class="rotator" aria-hidden="true">
             <span class="rotator__list">
               <span class="rotator__item">interested in SWE</span>
               <span class="rotator__item">interested in AI/ML</span>
-              <span class="rotator__item">an AI Alignment enthusiast</span>
-              <span class="rotator__item">a fan of cooking</span>
+              <span class="rotator__item">studying ECE @ Princeton.</span>
               <span class="rotator__item">Sivaditya.</span>
             </span>
           </span>
         </h1>
       </div>
-      <p class="hero__title rise" style="--d:.3s">Software engineer and machine learning engineer. Electrical and Computer Engineering at Princeton.</p>
-      <p class="hero__bio rise" style="--d:.42s">I take vague ideas and turn them into working products, fast. I've shipped full-stack apps, multi-agent systems, RAG pipelines, and a patient-safety app built in 48 hours at a hackathon. Behind the speed is rigor: my projects run on real backends with real deployments, and the AI systems come with eval harnesses, observability, and cost tracking, because a system you can't measure is one you can't trust.</p>
-      <p class="hero__about rise" style="--d:.5s">For a research project in Princeton's Computer Science department, I developed SMARRT-PAL, a reasoning architecture for program-aided language models: roughly 5% higher accuracy while cutting LLM inference cost by about a third. You can <a class="text-link" href="https://drive.google.com/file/d/1AbOt9zXUI6xYJp1HlMzG65clnR1DNFt4/view?usp=sharing" target="_blank" rel="noopener">read the write-up here</a>. Outside of research I build at hackathons, from AI agents and software to 3D printing and hardware, and I build with Claude Code. Long term, I want to work on AI safety and alignment.</p>
-      <div class="hero__actions rise" style="--d:.6s">
+      <div class="hero__actions rise" style="--d:.3s">
         <a class="btn-glass glass" href="#projects">
-          <span class="glass__warp" aria-hidden="true"></span>
-          <span class="glass__tint" aria-hidden="true"></span>
-          <span class="glass__shine" aria-hidden="true"></span>
           <span class="btn-glass__label">View my projects <span aria-hidden="true">&rarr;</span></span>
         </a>
-        <div class="hero__social">
-          <a class="ghost-link" href="https://github.com/SivTPadmanabhan" target="_blank" rel="noopener">GitHub</a>
-          <span class="dot-sep" aria-hidden="true">&middot;</span>
-          <a class="ghost-link" href="https://www.linkedin.com/in/sivaditya-padmanabhan/" target="_blank" rel="noopener">LinkedIn</a>
-        </div>
+        <a class="btn-glass glass" href="https://github.com/SivTPadmanabhan" target="_blank" rel="noopener">
+          <span class="btn-glass__label">GitHub</span>
+        </a>
+        <a class="btn-glass glass" href="https://www.linkedin.com/in/sivaditya-padmanabhan/" target="_blank" rel="noopener">
+          <span class="btn-glass__label">LinkedIn</span>
+        </a>
       </div>
+      <p class="hero__title rise" style="--d:.42s">Software engineer and machine learning engineer. Electrical and Computer Engineering at Princeton.</p>
+      <p class="hero__bio rise" style="--d:.5s">I take vague ideas and turn them into working products, fast. I've shipped full-stack apps, multi-agent systems, RAG pipelines, and a patient-safety app built in 48 hours at a hackathon. Behind the speed is rigor: my projects run on real backends with real deployments, and the AI systems come with eval harnesses, observability, and cost tracking, because a system you can't measure is one you can't trust.</p>
+      <p class="hero__about rise" style="--d:.58s">For a research project in Princeton's Computer Science department, I developed SMARRT-PAL, a reasoning architecture for program-aided language models: roughly 5% higher accuracy while cutting LLM inference cost by about a third. You can <a class="text-link" href="https://drive.google.com/file/d/1AbOt9zXUI6xYJp1HlMzG65clnR1DNFt4/view?usp=sharing" target="_blank" rel="noopener">read the write-up here</a>. Outside of research I build at hackathons, from AI agents and software to 3D printing and hardware, and I build with Claude Code. Long term, I want to work on AI safety and alignment.</p>
     </div>
 
     <a class="scroll-badge rise" style="--d:.7s" href="#projects" aria-label="Scroll down to Projects">
@@ -246,9 +237,6 @@
           <textarea id="f-message" name="message" rows="5" required></textarea>
         </div>
         <button type="submit" class="btn-glass glass">
-          <span class="glass__warp" aria-hidden="true"></span>
-          <span class="glass__tint" aria-hidden="true"></span>
-          <span class="glass__shine" aria-hidden="true"></span>
           <span class="btn-glass__label">Send message</span>
         </button>
         <p class="form-msg form-msg--success" hidden>Thanks, your message is on its way. I'll get back to you soon.</p>
