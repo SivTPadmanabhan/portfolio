@@ -7,6 +7,12 @@
 
   var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
+  // Listeners that ride the hero shader's clock (the glass rims sample
+  // the same math the shader draws, so edges react to the moving light).
+  // Called with the current shader time from inside the one rAF loop.
+  var frameHooks = [];
+  var heroShaderActive = false; // true once the hero shader is drawing
+
   /* ================================================================
      Shared WebGL scaffolding: fullscreen-triangle shader on a canvas.
      Returns { draw(time), resize } or null when WebGL is unavailable.
@@ -101,10 +107,11 @@
     if (!shader) return; // no WebGL: hero simply stays black
 
     var shaderTime = 1.0; // uniform starts at 1.0 in the original
+    heroShaderActive = true;
 
     if (reducedMotion) {
-      shader.draw(40.0); // a pleasing static frame
-      return;
+      shader.draw(40.0); // a pleasing static frame; the glass rims
+      return;            // sample this same frozen time once (D34)
     }
 
     var visible = true;
@@ -118,6 +125,7 @@
       if (visible) {
         shaderTime += 0.05; // original increment
         shader.draw(shaderTime);
+        for (var i = 0; i < frameHooks.length; i++) frameHooks[i](shaderTime);
       }
       requestAnimationFrame(loop);
     })();
@@ -235,21 +243,12 @@
       };
     }
 
-    function buildConicGradient(profile, fromDeg) {
-      var stops = [];
-      for (var b = 0; b <= BINS; b++) {
-        var t = profile[b % BINS];
-        var deg = (b / BINS) * 360;
-        var op = (0.07 + t * 0.63).toFixed(3);
-        stops.push('rgba(255,255,255,' + op + ') ' + deg.toFixed(1) + 'deg');
-      }
-      return 'conic-gradient(from ' + fromDeg.toFixed(1) + 'deg at 50% 50%, ' + stops.join(', ') + ')';
-    }
-
-    // The component's ten-layer bevel with color-mix() resolved to rgba
+    // The component's ten-layer bevel with color-mix() resolved to rgba.
+    // White highlights run at 45% of the component's alphas: the edges
+    // should read thin and dark, not as bright bands (D34).
     function bevelShadow(cos, sin, rim) {
       function px(v) { return v.toFixed(2) + 'px'; }
-      function white(a) { return 'rgba(255,255,255,' + a.toFixed(3) + ')'; }
+      function white(a) { return 'rgba(255,255,255,' + (a * 0.45).toFixed(3) + ')'; }
       function black(a) { return 'rgba(0,0,0,' + a.toFixed(2) + ')'; }
       return [
         'inset 0 0 0 1px ' + white(rim * 0.20),
@@ -277,9 +276,84 @@
       return { x: x, y: y };
     }
 
+    /* ---- Reactive rim (D34): re-evaluate the hero shader's fragment
+       math in JS at points around each glass edge, so the rim stays
+       near-black and only lights up where a ring actually passes. ---- */
+    var RIM_BINS = 16;
+    var rimTargets = []; // hero glass elements: {el, cx, cy, rx, ry}
+
+    // Port of the hero fragment for one point (hero-local CSS px).
+    // gl_FragCoord runs bottom-up, hence the y flip.
+    function sampleShader(x, y, heroW, heroH, time) {
+      var m = Math.min(heroW, heroH);
+      var gy = heroH - y;
+      var ux = (x * 2 - heroW) / m;
+      var uy = (gy * 2 - heroH) / m;
+      var t = time * 0.05;
+      var len = Math.sqrt(ux * ux + uy * uy);
+      var mod = (ux + uy) % 0.2;
+      if (mod < 0) mod += 0.2;
+      var sum = 0;
+      for (var j = 0; j < 3; j++) {
+        var c = 0;
+        for (var i = 0; i < 5; i++) {
+          var f = t - 0.01 * j + 0.01 * i;
+          f -= Math.floor(f); // fract
+          c += 0.002 * (i * i) / Math.abs(f * 5 - len + mod);
+        }
+        sum += Math.min(c, 2);
+      }
+      return Math.min(1, sum / 2.4);
+    }
+
+    function updateRims(time) {
+      if (!hero) return;
+      var hw = hero.offsetWidth;
+      var hh = hero.offsetHeight;
+      if (!hw || !hh) return;
+
+      for (var k = 0; k < rimTargets.length; k++) {
+        var target = rimTargets[k];
+        var alphas = [];
+        var maxB = 0;
+        for (var b = 0; b < RIM_BINS; b++) {
+          // conic gradients start at 12 o'clock and run clockwise
+          var theta = (b / RIM_BINS) * Math.PI * 2;
+          var px = target.cx + Math.sin(theta) * target.rx;
+          var py = target.cy - Math.cos(theta) * target.ry;
+          var bright = sampleShader(px, py, hw, hh, time);
+          if (bright > maxB) maxB = bright;
+          alphas.push(0.03 + bright * 0.45);
+        }
+        var stops = [];
+        for (b = 0; b <= RIM_BINS; b++) {
+          stops.push('rgba(255,255,255,' + alphas[b % RIM_BINS].toFixed(3) + ') ' +
+                     ((b / RIM_BINS) * 360).toFixed(1) + 'deg');
+        }
+        target.el.style.setProperty('--rim-gradient',
+          'conic-gradient(from 0deg at 50% 50%, ' + stops.join(', ') + ')');
+        target.el.style.setProperty('--rim-intensity', maxB.toFixed(3));
+      }
+    }
+
+    var rimFrame = 0;
+    function rimHook(time) {
+      rimFrame++;
+      if (rimFrame % 3) return; // ~20fps is plenty for a reflection
+      updateRims(time);
+    }
+
+    // Faint top-lit ring for glass sitting on the flat void (contact
+    // button, project flyout panel): dark edge, no white outline.
+    var DIM_RIM = 'conic-gradient(from 0deg at 50% 50%, ' +
+      'rgba(255,255,255,0.10) 0deg, rgba(255,255,255,0.03) 100deg, ' +
+      'rgba(255,255,255,0.02) 180deg, rgba(255,255,255,0.03) 260deg, ' +
+      'rgba(255,255,255,0.10) 360deg)';
+
     function refresh() {
       try {
         var lensImages = [];
+        rimTargets = [];
 
         glasses.forEach(function (el) {
           var w = el.offsetWidth;
@@ -304,16 +378,25 @@
             var intensity = 0.4 + a.magnitude * 0.6;
             var cosV = -Math.cos(a.domAngle) * intensity;
             var sinV = -Math.sin(a.domAngle) * intensity;
-            var lightAngleDeg = (a.domAngle * 180) / Math.PI + 90;
-            el.style.setProperty('--rim-gradient', buildConicGradient(a.profile, lightAngleDeg));
-            el.style.setProperty('--rim-intensity', String(a.magnitude));
             el.style.setProperty('--glass-bevel', bevelShadow(cosV, sinV, a.magnitude));
+          }
+
+          if (inHero && heroShaderActive) {
+            // rim starts dark; the shader hook lights it up per frame
+            el.style.setProperty('--rim-gradient', DIM_RIM);
+            el.style.setProperty('--rim-intensity', '0.1');
+            rimTargets.push({ el: el, cx: pos.x + w / 2, cy: pos.y + h / 2, rx: w / 2, ry: h / 2 });
+          } else {
+            el.style.setProperty('--rim-gradient', DIM_RIM);
+            el.style.setProperty('--rim-intensity', '0.25');
           }
 
           if (inHero) lensImages.push({ map: map, x: pos.x, y: pos.y, w: w, h: h });
         });
 
         mountLenses(lensImages);
+
+        if (reducedMotion && heroShaderActive) updateRims(40.0);
       } catch (err) {
         // any failure: skip the refraction, the CSS glass stands alone
         if (heroCanvas) heroCanvas.style.filter = '';
@@ -359,6 +442,7 @@
       } else {
         refresh();
       }
+      if (!reducedMotion) frameHooks.push(rimHook);
     }
     if (document.readyState === 'complete') start();
     else window.addEventListener('load', start);
@@ -374,18 +458,18 @@
      Glass button click ripple (hover/click only, D26)
      ================================================================ */
   (function initGlassRipples() {
-    var buttons = Array.prototype.slice.call(document.querySelectorAll('.btn-glass'));
-    buttons.forEach(function (btn) {
-      btn.addEventListener('click', function (e) {
-        if (reducedMotion) return;
-        var rect = btn.getBoundingClientRect();
-        var ripple = document.createElement('span');
-        ripple.className = 'btn-glass__ripple';
-        ripple.style.left = (e.clientX - rect.left) + 'px';
-        ripple.style.top = (e.clientY - rect.top) + 'px';
-        btn.appendChild(ripple);
-        setTimeout(function () { ripple.remove(); }, 650);
-      });
+    // delegated, so pills injected into the project flyout ripple too
+    document.addEventListener('click', function (e) {
+      if (reducedMotion) return;
+      var btn = e.target.closest ? e.target.closest('.btn-glass') : null;
+      if (!btn) return;
+      var rect = btn.getBoundingClientRect();
+      var ripple = document.createElement('span');
+      ripple.className = 'btn-glass__ripple';
+      ripple.style.left = (e.clientX - rect.left) + 'px';
+      ripple.style.top = (e.clientY - rect.top) + 'px';
+      btn.appendChild(ripple);
+      setTimeout(function () { ripple.remove(); }, 650);
     });
   })();
 
@@ -426,8 +510,10 @@
   });
 
   /* ================================================================
-     Project overlay: click a card to open, arrows / arrow keys flip
-     between projects with a 3D flip, Esc or X or backdrop closes.
+     Project flyout (D35): clicking a card makes its detail fly out of
+     the card and expand front and center as a liquid glass panel.
+     Esc, X, or the backdrop closes it (it flies back into its card).
+     No prev/next: one project at a time.
      ================================================================ */
   (function initProjectOverlay() {
     var overlay = document.querySelector('.project-overlay');
@@ -435,72 +521,96 @@
 
     var cards = Array.prototype.slice.call(document.querySelectorAll('.pcard'));
     var templates = Array.prototype.slice.call(document.querySelectorAll('template.project-detail'));
-    var flipCard = overlay.querySelector('.project-overlay__card');
+    var panel = overlay.querySelector('.project-overlay__panel');
     var titleEl = overlay.querySelector('.project-overlay__title');
-    var counterEl = overlay.querySelector('.project-overlay__counter');
     var bodyEl = overlay.querySelector('.project-overlay__body');
     var closeBtn = overlay.querySelector('.project-overlay__close');
-    var prevBtn = overlay.querySelector('.project-overlay__nav--prev');
-    var nextBtn = overlay.querySelector('.project-overlay__nav--next');
 
-    var current = 0;
-    var flipping = false;
+    var sourceCard = null;
     var lastFocused = null;
+    var closing = false;
 
     function fill(index) {
       var tpl = templates[index];
       titleEl.innerHTML = tpl.dataset.title;
-      counterEl.textContent = (index + 1) + ' / ' + templates.length;
       bodyEl.innerHTML = '';
       bodyEl.appendChild(tpl.content.cloneNode(true));
-      current = index;
     }
 
-    function open(index) {
+    // FLIP: transform that puts the centered panel back onto the card
+    function transformToCard() {
+      var c = sourceCard.getBoundingClientRect();
+      var p = panel.getBoundingClientRect();
+      var dx = (c.left + c.width / 2) - (p.left + p.width / 2);
+      var dy = (c.top + c.height / 2) - (p.top + p.height / 2);
+      var sx = c.width / p.width;
+      var sy = c.height / p.height;
+      return 'translate(' + dx.toFixed(1) + 'px,' + dy.toFixed(1) + 'px) ' +
+             'scale(' + sx.toFixed(4) + ',' + sy.toFixed(4) + ')';
+    }
+
+    function open(index, card) {
+      sourceCard = card;
+      closing = false;
       fill(index);
       lastFocused = document.activeElement;
       overlay.hidden = false;
       document.body.style.overflow = 'hidden';
-      // let the browser paint the hidden->shown frame before fading in
-      requestAnimationFrame(function () { overlay.classList.add('show'); });
+
+      if (reducedMotion) {
+        overlay.classList.add('show');
+        closeBtn.focus();
+        return;
+      }
+
+      // start collapsed onto the clicked card, then release to center
+      panel.style.transition = 'none';
+      panel.style.transform = transformToCard();
+      panel.style.opacity = '0.35';
+      requestAnimationFrame(function () {
+        overlay.classList.add('show');
+        requestAnimationFrame(function () {
+          panel.style.transition = '';
+          panel.style.transform = '';
+          panel.style.opacity = '';
+        });
+      });
       closeBtn.focus();
     }
 
     function close() {
-      overlay.classList.remove('show');
+      if (overlay.hidden || closing) return;
       document.body.style.overflow = '';
-      var done = function () { overlay.hidden = true; };
-      if (reducedMotion) done(); else setTimeout(done, 300);
-      if (lastFocused) lastFocused.focus();
-    }
 
-    function flipTo(index, dir) {
-      index = (index + templates.length) % templates.length;
-      if (flipping || index === current) return;
-
-      if (reducedMotion) {
-        fill(index);
-        return;
+      if (reducedMotion || !sourceCard) {
+        overlay.classList.remove('show');
+        overlay.hidden = true;
+      } else {
+        // fly back into the originating card
+        closing = true;
+        panel.style.transform = transformToCard();
+        panel.style.opacity = '0';
+        overlay.classList.remove('show');
+        setTimeout(function () {
+          overlay.hidden = true;
+          closing = false;
+          panel.style.transition = 'none';
+          panel.style.transform = '';
+          panel.style.opacity = '';
+          void panel.offsetWidth; // commit before re-enabling transitions
+          panel.style.transition = '';
+        }, 400);
       }
-
-      flipping = true;
-      flipCard.classList.add(dir === 1 ? 'flip-next' : 'flip-prev');
-      setTimeout(function () { fill(index); }, 300); // swap at the 90deg midpoint
-      setTimeout(function () {
-        flipCard.classList.remove('flip-next', 'flip-prev');
-        flipping = false;
-      }, 600);
+      if (lastFocused) lastFocused.focus();
     }
 
     cards.forEach(function (card) {
       card.addEventListener('click', function () {
-        open(parseInt(card.dataset.project, 10));
+        open(parseInt(card.dataset.project, 10), card);
       });
     });
 
     closeBtn.addEventListener('click', close);
-    prevBtn.addEventListener('click', function () { flipTo(current - 1, -1); });
-    nextBtn.addEventListener('click', function () { flipTo(current + 1, 1); });
 
     overlay.addEventListener('click', function (e) {
       if (e.target === overlay) close();
@@ -509,8 +619,6 @@
     document.addEventListener('keydown', function (e) {
       if (overlay.hidden) return;
       if (e.key === 'Escape') { close(); return; }
-      if (e.key === 'ArrowLeft') { flipTo(current - 1, -1); return; }
-      if (e.key === 'ArrowRight') { flipTo(current + 1, 1); return; }
       if (e.key === 'Tab') {
         // keep focus inside the dialog
         var focusables = overlay.querySelectorAll('button, a[href]');

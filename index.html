@@ -94,8 +94,8 @@
         <button class="pcard reveal" data-project="0" aria-haspopup="dialog">
           <span class="pcard__num" aria-hidden="true">01</span>
           <span class="pcard__name">Meridian</span>
-          <span class="pcard__blurb">Multi-agent incident triage platform with full LLM observability. Every call traced, every incident under $0.05.</span>
-          <span class="pcard__stack">Multi-agent &middot; Langfuse &middot; RAGAS &middot; Slack</span>
+          <span class="pcard__blurb">Self-evaluating multi-agent operations intelligence platform. Human approval gate, dual eval harness, about $0.04 per incident.</span>
+          <span class="pcard__stack">LangGraph &middot; Claude &middot; RAGAS &middot; Langfuse &middot; pgvector &middot; Slack</span>
           <span class="pcard__more" aria-hidden="true">+</span>
         </button>
 
@@ -110,24 +110,24 @@
         <button class="pcard reveal" data-project="2" aria-haspopup="dialog">
           <span class="pcard__num" aria-hidden="true">03</span>
           <span class="pcard__name">Buddy</span>
-          <span class="pcard__blurb">RAG-powered study tool that answers questions from your own Google Drive. Production-grade pipeline, end to end.</span>
-          <span class="pcard__stack">FastAPI &middot; React &middot; PostgreSQL &middot; Pinecone &middot; Docker</span>
+          <span class="pcard__blurb">RAG system that indexes your Google Drive and answers questions grounded in your own documents, with citations and memory across sessions.</span>
+          <span class="pcard__stack">FastAPI &middot; React &middot; Pinecone &middot; Gemini &middot; Tesseract OCR &middot; Docker</span>
           <span class="pcard__more" aria-hidden="true">+</span>
         </button>
 
         <button class="pcard reveal" data-project="3" aria-haspopup="dialog">
           <span class="pcard__num" aria-hidden="true">04</span>
           <span class="pcard__name">Al.ai</span>
-          <span class="pcard__blurb">Alzheimer's patient-safety app shipped in 48 hours. QR wearable, three AI modes, one goal: getting people home safe.</span>
-          <span class="pcard__stack">Flutter &middot; Gemini &middot; ElevenLabs &middot; FastAPI &middot; PostgreSQL</span>
+          <span class="pcard__blurb">Alzheimer's patient-safety app shipped in 48 hours. QR wearable, geofencing, and an AI assistant that adapts to whoever is holding the phone.</span>
+          <span class="pcard__stack">Flutter &middot; FastAPI &middot; PostgreSQL &middot; Gemini &middot; ElevenLabs &middot; Twilio</span>
           <span class="pcard__more" aria-hidden="true">+</span>
         </button>
 
         <button class="pcard reveal" data-project="4" aria-haspopup="dialog">
           <span class="pcard__num" aria-hidden="true">05</span>
           <span class="pcard__name">English&rarr;French Transformer <span class="pcard__name-sub">(Hello to Bonjour)</span></span>
-          <span class="pcard__blurb">Transformer translation model implemented from scratch, then deployed behind a web interface.</span>
-          <span class="pcard__stack">Transformer &middot; From scratch &middot; Web interface</span>
+          <span class="pcard__blurb">Transformer translation model implemented from scratch, plus a study of Pre- vs Post-LayerNormalization.</span>
+          <span class="pcard__stack">Transformer &middot; From scratch &middot; Pre/Post-LayerNorm</span>
           <span class="pcard__more" aria-hidden="true">+</span>
         </button>
 
@@ -135,47 +135,45 @@
     </div>
   </section>
 
-  <!-- Project detail content, injected into the overlay by main.js -->
+  <!-- Project detail content, injected into the flyout panel by main.js.
+       Copy sourced from the project READMEs (see COPY.md, 2026-07-06). -->
   <template class="project-detail" data-title="Meridian">
-    <p>Meridian is a multi-agent platform that connects developer tools and turns incoming requests into decisions a human can act on. It classifies each request by urgency, pulls relevant context from an organizational knowledge base, and routes a recommendation to Slack, where a person hits Approve or Ignore. The human stays in the loop by design.</p>
-    <p>It's also built to be measured. Every LLM call is traced in Langfuse with per-model tracking, and a RAGAS eval harness keeps quality honest. Cost per incident stays under $0.05.</p>
-    <a class="ghost-pill" href="https://github.com/SivTPadmanabhan/Meridian" target="_blank" rel="noopener">View the code on GitHub <span aria-hidden="true">&rarr;</span></a>
+    <p>Meridian is a self-evaluating, multi-agent operations intelligence platform. It watches an engineering stack (GitHub, GitLab CI, Slack), filters noise from signal with a tiered LLM pipeline, runs root-cause analysis with RAG context, and posts remediation proposals to Slack with approval buttons. Haiku triages everything; Sonnet only sees the incidents that matter. The human stays in the loop by design.</p>
+    <p>It also grades itself. Every analyzed run is scored online with RAGAS, a weekly offline eval runs against 56 labeled QA pairs with drift detection, and the judge is a different provider entirely: Claude generates, an OpenAI model grades, so Claude never grades itself. Cost lands around $0.04 per incident.</p>
+    <a class="btn-glass glass" href="https://github.com/SivTPadmanabhan/Meridian" target="_blank" rel="noopener"><span class="btn-glass__label">View the code on GitHub <span aria-hidden="true">&rarr;</span></span></a>
   </template>
 
   <template class="project-detail" data-title="SMARRT-PAL">
     <p>SMARRT-PAL came out of NLP research I did at Princeton: a reasoning architecture for program-aided language models, built with PyTorch and LangChain. The goal was better reasoning without a bigger bill, and it delivered on both counts, improving model accuracy by roughly 5% while cutting LLM inference cost by about 33%.</p>
-    <a class="ghost-pill" href="https://drive.google.com/file/d/1AbOt9zXUI6xYJp1HlMzG65clnR1DNFt4/view?usp=sharing" target="_blank" rel="noopener">Read the write-up <span aria-hidden="true">&rarr;</span></a>
+    <a class="btn-glass glass" href="https://drive.google.com/file/d/1AbOt9zXUI6xYJp1HlMzG65clnR1DNFt4/view?usp=sharing" target="_blank" rel="noopener"><span class="btn-glass__label">Read the research paper <span aria-hidden="true">&rarr;</span></span></a>
   </template>
 
   <template class="project-detail" data-title="Buddy">
-    <p>Buddy indexes a user's Google Drive and answers questions grounded in their own documents. The pipeline is production-grade: FastAPI backend, React frontend, PostgreSQL, Pinecone vector search, and Docker deployment.</p>
-    <p>Real documents are messy, so Buddy includes a Tesseract OCR layer for scanned files and reranking on top of vector search, which keeps answers reliable even when the source material isn't clean.</p>
-    <a class="ghost-pill" href="https://github.com/SivTPadmanabhan/Buddy" target="_blank" rel="noopener">View the code on GitHub <span aria-hidden="true">&rarr;</span></a>
+    <p>Buddy indexes a user's Google Drive and answers natural-language questions grounded in their own documents, with source citations. It remembers conversations across sessions, so follow-up questions just work.</p>
+    <p>Real documents are messy, so the pipeline parses PDFs, Office files, and even scanned images through a Tesseract OCR layer before anything reaches the Pinecone index. Gemini handles generation over a FastAPI backend with a React frontend, and daily quota guardrails keep the whole system comfortably inside free tiers.</p>
+    <a class="btn-glass glass" href="https://github.com/SivTPadmanabhan/Buddy" target="_blank" rel="noopener"><span class="btn-glass__label">View the code on GitHub <span aria-hidden="true">&rarr;</span></span></a>
   </template>
 
   <template class="project-detail" data-title="Al.ai">
-    <p>Al.ai is a cross-platform Flutter app for Alzheimer's and dementia patient safety, built in 48 hours at a hackathon. Patients wear a QR wearable; scanning it opens an AI assistant that adapts to whoever is holding the phone. Bystanders get privacy-filtered guidance to help. Caregivers get full medical history, location monitoring, and emergency notifications. The patient gets a voice-based companion for reassurance.</p>
-    <p>Under the hood it integrates Gemini, ElevenLabs, and GPS tracking over a FastAPI and PostgreSQL backend.</p>
-    <a class="ghost-pill" href="https://github.com/SivTPadmanabhan/Al.Ai" target="_blank" rel="noopener">View the code on GitHub <span aria-hidden="true">&rarr;</span></a>
+    <p>Al.ai is a cross-platform Flutter app for Alzheimer's and dementia patient safety, built in 48 hours at a hackathon. It serves three roles at once. Patients get a calming voice companion (Gemini for conversation, ElevenLabs for voice) and a unique QR wearable. Bystanders who scan it see privacy-filtered guidance, first name only, and the caregiver is notified automatically. Caregivers get a full dashboard: real-time location with geofence breach alerts, scan notifications, and patient management.</p>
+    <p>Under the hood: FastAPI and PostgreSQL, JWT auth, GPS tracking with geofencing, and Twilio SMS for real-time alerts.</p>
+    <a class="btn-glass glass" href="https://github.com/SivTPadmanabhan/Al.Ai" target="_blank" rel="noopener"><span class="btn-glass__label">View the code on GitHub <span aria-hidden="true">&rarr;</span></span></a>
   </template>
 
   <template class="project-detail" data-title="English&rarr;French Transformer (Hello to Bonjour)">
-    <p>To really understand transformers, I built one. This English-to-French translation model was implemented from scratch rather than fine-tuned from an existing checkpoint, then deployed behind a web interface so anyone can try it.</p>
-    <a class="ghost-pill" href="https://github.com/SivTPadmanabhan/Hello-to-Bonjour" target="_blank" rel="noopener">View the code on GitHub <span aria-hidden="true">&rarr;</span></a>
+    <p>To really understand transformers, I built one. Hello to Bonjour re-implements the architecture from "Attention Is All You Need" for English-to-French translation, trained with its own tokenizers rather than fine-tuned from an existing checkpoint.</p>
+    <p>It doubles as a small research project: the model comes in Pre-LayerNormalization and Post-LayerNormalization variants, comparing how the two techniques behave in training and translation quality.</p>
+    <a class="btn-glass glass" href="https://github.com/SivTPadmanabhan/Hello-to-Bonjour" target="_blank" rel="noopener"><span class="btn-glass__label">View the code on GitHub <span aria-hidden="true">&rarr;</span></span></a>
   </template>
 
-  <!-- Fullscreen project overlay: flip through projects with arrows -->
+  <!-- Fullscreen project flyout: the detail panel flies out of the
+       clicked card to front and center (D35). No prev/next arrows. -->
   <div class="project-overlay" role="dialog" aria-modal="true" aria-label="Project details" hidden>
     <button class="project-overlay__close" aria-label="Close project details">&times;</button>
-    <button class="project-overlay__nav project-overlay__nav--prev" aria-label="Previous project">&larr;</button>
-    <div class="project-overlay__card">
-      <article class="project-overlay__face">
-        <p class="project-overlay__counter"></p>
-        <h3 class="project-overlay__title"></h3>
-        <div class="project-overlay__body"></div>
-      </article>
-    </div>
-    <button class="project-overlay__nav project-overlay__nav--next" aria-label="Next project">&rarr;</button>
+    <article class="project-overlay__panel glass">
+      <h3 class="project-overlay__title"></h3>
+      <div class="project-overlay__body"></div>
+    </article>
   </div>
 
   <!-- ============ SKILLS ============ -->
@@ -188,19 +186,19 @@
       <div class="skills">
         <div class="skills__group reveal">
           <h3 class="skills__label">Languages</h3>
-          <p class="skills__line">Python (primary) <span class="dot-sep" aria-hidden="true">&middot;</span> JavaScript, HTML, CSS through React work</p>
+          <p class="skills__line">Python (primary) <span class="dot-sep" aria-hidden="true">&middot;</span> TypeScript and JavaScript <span class="dot-sep" aria-hidden="true">&middot;</span> HTML, CSS</p>
         </div>
         <div class="skills__group reveal">
           <h3 class="skills__label">ML / AI</h3>
-          <p class="skills__line">PyTorch <span class="dot-sep" aria-hidden="true">&middot;</span> LangChain and LangGraph <span class="dot-sep" aria-hidden="true">&middot;</span> RAG pipelines <span class="dot-sep" aria-hidden="true">&middot;</span> LLM evaluation (RAGAS, LLM-as-judge) <span class="dot-sep" aria-hidden="true">&middot;</span> Observability (Langfuse) <span class="dot-sep" aria-hidden="true">&middot;</span> NumPy <span class="dot-sep" aria-hidden="true">&middot;</span> Pandas</p>
+          <p class="skills__line">PyTorch <span class="dot-sep" aria-hidden="true">&middot;</span> LangChain and LangGraph <span class="dot-sep" aria-hidden="true">&middot;</span> RAG pipelines <span class="dot-sep" aria-hidden="true">&middot;</span> sentence-transformers <span class="dot-sep" aria-hidden="true">&middot;</span> LLM evaluation (RAGAS, LLM-as-judge) <span class="dot-sep" aria-hidden="true">&middot;</span> Observability (Langfuse) <span class="dot-sep" aria-hidden="true">&middot;</span> Claude and Gemini APIs <span class="dot-sep" aria-hidden="true">&middot;</span> NumPy <span class="dot-sep" aria-hidden="true">&middot;</span> Pandas</p>
         </div>
         <div class="skills__group reveal">
           <h3 class="skills__label">Backend / Infra</h3>
-          <p class="skills__line">FastAPI <span class="dot-sep" aria-hidden="true">&middot;</span> Flask <span class="dot-sep" aria-hidden="true">&middot;</span> PostgreSQL <span class="dot-sep" aria-hidden="true">&middot;</span> Pinecone <span class="dot-sep" aria-hidden="true">&middot;</span> Docker <span class="dot-sep" aria-hidden="true">&middot;</span> REST APIs <span class="dot-sep" aria-hidden="true">&middot;</span> Git</p>
+          <p class="skills__line">FastAPI <span class="dot-sep" aria-hidden="true">&middot;</span> Flask <span class="dot-sep" aria-hidden="true">&middot;</span> PostgreSQL and pgvector <span class="dot-sep" aria-hidden="true">&middot;</span> Redis <span class="dot-sep" aria-hidden="true">&middot;</span> Pinecone <span class="dot-sep" aria-hidden="true">&middot;</span> Docker <span class="dot-sep" aria-hidden="true">&middot;</span> REST APIs <span class="dot-sep" aria-hidden="true">&middot;</span> Git</p>
         </div>
         <div class="skills__group reveal">
           <h3 class="skills__label">Frontend / Mobile</h3>
-          <p class="skills__line">React <span class="dot-sep" aria-hidden="true">&middot;</span> Flutter</p>
+          <p class="skills__line">React <span class="dot-sep" aria-hidden="true">&middot;</span> Next.js <span class="dot-sep" aria-hidden="true">&middot;</span> Tailwind CSS <span class="dot-sep" aria-hidden="true">&middot;</span> Flutter</p>
         </div>
       </div>
 
