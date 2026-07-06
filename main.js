@@ -124,102 +124,45 @@
   })();
 
   /* ================================================================
-     Liquid metal buttons (D24, thinned and dimmed per D27): flowing
-     chrome bands with chromatic fringing as a rim around the dark
-     face. Idle: one static frame, no running loop. Hover starts the
-     flow; click bursts it; mouseleave eases it back to a standstill.
+     Liquid glass buttons (D30): all the glass work is CSS + the SVG
+     distortion filter. JS only adds the click ripple.
      ================================================================ */
-  (function initLiquidButtons() {
-    var buttons = Array.prototype.slice.call(document.querySelectorAll('.btn-liquid'));
-    if (!buttons.length) return;
-
-    var liquidFrag =
-      'precision mediump float;' +
-      'uniform vec2 resolution;' +
-      'uniform float time;' +
-      'void main(void) {' +
-      '  vec2 p = gl_FragCoord.xy / resolution.y;' +
-      '  float t = time;' +
-      // flowing coordinate at 45 degrees, warped by layered sines
-      '  float v = (p.x + p.y) * 0.7071;' +
-      '  v += 0.16 * sin(p.y * 6.0 + t * 1.7)' +
-      '     + 0.11 * sin(p.x * 9.0 - t * 1.3)' +
-      '     + 0.07 * sin((p.x + p.y) * 14.0 + t * 2.3);' +
-      '  float w = v * 4.0 - t * 0.45;' +
-      // specular highlights sampled at three shifted phases for the
-      // red/blue chromatic edges of liquid metal
-      '  vec3 m;' +
-      '  for (int c = 0; c < 3; c++) {' +
-      '    float band = fract(w + 0.035 * float(c - 1));' +
-      '    float tri = smoothstep(0.0, 0.5, band) * smoothstep(1.0, 0.5, band);' +
-      '    m[c] = pow(tri, 3.0);' +
-      '  }' +
-      // dim chrome: dark steel base, restrained highlights (D27)
-      '  vec3 col = vec3(0.10, 0.11, 0.13) + vec3(m.x, m.y, m.z) * 0.55;' +
-      '  float lum = m.y;' +
-      '  col += vec3(0.04, 0.07, 0.22) * (1.0 - lum) * 0.2;' +
-      '  col += vec3(0.35, 0.2, 0.0) * lum * 0.11;' +
-      '  gl_FragColor = vec4(col, 1.0);' +
-      '}';
-
+  (function initGlassButtons() {
+    var buttons = Array.prototype.slice.call(document.querySelectorAll('.btn-glass'));
     buttons.forEach(function (btn) {
-      var canvas = btn.querySelector('.btn-liquid__metal');
-      if (!canvas) return;
-      var shader = mountShader(canvas, liquidFrag);
-      if (!shader) return; // no WebGL: button keeps its CSS gradient rim
-
-      var localTime = Math.random() * 20; // desync the two buttons
-      var speed = 0;
-      var targetSpeed = 0;
-      var hovered = false;
-      var running = false;
-
-      shader.draw(localTime); // idle: single static frame
-
-      if (reducedMotion) return;
-
-      function step() {
-        speed += (targetSpeed - speed) * 0.08;
-        localTime += 0.016 * speed;
-        shader.draw(localTime);
-        if (targetSpeed === 0 && speed < 0.02) {
-          running = false;
-          return; // settled: stop the loop until the next hover
-        }
-        requestAnimationFrame(step);
-      }
-
-      function start() {
-        if (running) return;
-        running = true;
-        requestAnimationFrame(step);
-      }
-
-      btn.addEventListener('mouseenter', function () {
-        hovered = true;
-        targetSpeed = 1.0;
-        start();
-      });
-      btn.addEventListener('mouseleave', function () {
-        hovered = false;
-        targetSpeed = 0;
-      });
-
       btn.addEventListener('click', function (e) {
-        targetSpeed = 2.4;
-        start();
-        setTimeout(function () { targetSpeed = hovered ? 1.0 : 0; }, 350);
-
-        // expanding light ripple from the click point
+        if (reducedMotion) return;
         var rect = btn.getBoundingClientRect();
         var ripple = document.createElement('span');
-        ripple.className = 'btn-liquid__ripple';
+        ripple.className = 'btn-glass__ripple';
         ripple.style.left = (e.clientX - rect.left) + 'px';
         ripple.style.top = (e.clientY - rect.top) + 'px';
         btn.appendChild(ripple);
         setTimeout(function () { ripple.remove(); }, 650);
       });
     });
+  })();
+
+  /* ================================================================
+     Hero phrase rotator (D31): scrolls through the intro phrases once
+     after load and settles on the name. One-shot, never loops (D26).
+     ================================================================ */
+  (function initHeroRotator() {
+    var list = document.querySelector('.rotator__list');
+    if (!list) return;
+    var last = list.children.length - 1;
+
+    if (reducedMotion) {
+      list.style.setProperty('--ri', last);
+      return;
+    }
+
+    var i = 0;
+    var timer = setInterval(function () {
+      i += 1;
+      list.style.setProperty('--ri', i);
+      if (i >= last) clearInterval(timer);
+    }, 900);
   })();
 
   /* ================================================================
