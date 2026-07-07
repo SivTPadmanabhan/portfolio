@@ -228,16 +228,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 
 /* Glass buttons: springy scale on hover, settle on press (hover/click only).
-   Each pill sits in a soft brand-gradient glow: box-shadow bleeds it past
-   the button's edge, and the radial background layers put the same light
-   under the glass tint so it reads through the smoked surface. */
+   The brand glow exists only on hover/press. At rest the shadow stack is
+   collapsed and fully transparent (same layer count/order), so on hover
+   the glow interpolates blur and spread: it grows out of the button
+   instead of popping in. Inset layers put the glow under the glass. */
 .btn-glass {
-  /* three glow levels: dim at rest, bright on hover, a quick extra
-     bump while pressed (the box-shadow transition rides it back down) */
-  --glow-outer:
-    0 0 30px -3px rgba(37, 71, 255, 0.48),
-    0 9px 40px -5px rgba(255, 106, 0, 0.34),
-    0 0 68px -8px rgba(255, 214, 10, 0.22);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -253,30 +248,36 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   text-transform: uppercase;
   color: var(--color-chalk);
   transform-origin: center;
-  background:
-    radial-gradient(130% 160% at 50% -30%, rgba(37, 71, 255, 0.32), rgba(37, 71, 255, 0) 58%),
-    radial-gradient(130% 170% at 50% 135%, rgba(255, 106, 0, 0.26), rgba(255, 106, 0, 0) 58%),
-    rgba(5, 7, 12, 0.62);
-  box-shadow: var(--glow-outer);
+  background: rgba(5, 7, 12, 0.62);
+  box-shadow:
+    0 0 0 -6px rgba(37, 71, 255, 0),
+    0 0 0 -8px rgba(255, 106, 0, 0),
+    0 0 0 -10px rgba(255, 214, 10, 0),
+    inset 0 0 0 -10px rgba(37, 71, 255, 0),
+    inset 0 0 0 -10px rgba(255, 106, 0, 0);
   transition: transform 0.4s cubic-bezier(0.4, 1.5, 0.3, 1),
-              box-shadow 0.25s ease;
+              box-shadow 0.45s ease;
 }
 .btn-glass:hover {
   transform: scale(1.04);
   box-shadow:
     0 0 36px -4px rgba(37, 71, 255, 0.78),
     0 8px 44px -6px rgba(255, 106, 0, 0.54),
-    0 0 72px -8px rgba(255, 214, 10, 0.34);
+    0 0 72px -8px rgba(255, 214, 10, 0.34),
+    inset 0 14px 28px -10px rgba(37, 71, 255, 0.35),
+    inset 0 -14px 28px -10px rgba(255, 106, 0, 0.30);
 }
 .btn-glass:active {
   transform: scale(0.96);
   box-shadow:
     0 0 42px -3px rgba(37, 71, 255, 0.95),
     0 8px 50px -5px rgba(255, 106, 0, 0.68),
-    0 0 84px -6px rgba(255, 214, 10, 0.44);
+    0 0 84px -6px rgba(255, 214, 10, 0.44),
+    inset 0 16px 32px -10px rgba(37, 71, 255, 0.45),
+    inset 0 -16px 32px -10px rgba(255, 106, 0, 0.40);
 }
 .btn-glass:focus-visible {
-  box-shadow: var(--focus-ring), var(--glow-outer);
+  box-shadow: var(--focus-ring);
   border-radius: var(--radius-pill);
 }
 
@@ -317,10 +318,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .nav a { pointer-events: auto; }
 
 .nav__wordmark {
-  font-size: var(--text-label);
-  font-weight: var(--weight-label);
+  font-size: clamp(18px, 1.7vw, 23px);
+  font-weight: 600;
   color: var(--color-chalk);
-  letter-spacing: 0.01em;
+  letter-spacing: -0.015em;
 }
 
 .nav__links { display: flex; gap: var(--space-4); }
@@ -479,9 +480,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   color: inherit;
   font: inherit;
   cursor: pointer;
+  /* rest = collapsed transparent stack so the hover glow grows in */
+  box-shadow:
+    0 0 0 -12px rgba(37, 71, 255, 0),
+    0 0 0 -14px rgba(255, 106, 0, 0),
+    0 0 0 -18px rgba(255, 214, 10, 0);
   transition: transform var(--duration-micro) ease,
               background var(--duration-micro) ease,
-              box-shadow var(--duration-micro) ease;
+              box-shadow 0.45s ease;
 }
 .pcard:hover {
   transform: translateY(-4px);

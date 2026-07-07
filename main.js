@@ -564,8 +564,16 @@
     if (!list) return;
     var last = list.children.length - 1;
 
+    // once a phrase has scrolled away, hide it outright: its descenders
+    // hang below its line box and would otherwise peek into the top of
+    // the rotator window
+    function hideAbove(count) {
+      for (var j = 0; j < count; j++) list.children[j].style.visibility = 'hidden';
+    }
+
     if (reducedMotion) {
       list.style.setProperty('--ri', last);
+      hideAbove(last);
       return;
     }
 
@@ -573,6 +581,9 @@
     var timer = setInterval(function () {
       i += 1;
       list.style.setProperty('--ri', i);
+      (function (done) {
+        setTimeout(function () { hideAbove(done); }, 650); // after the 0.55s slide
+      })(i);
       if (i >= last) clearInterval(timer);
     }, 1900);
   })();
