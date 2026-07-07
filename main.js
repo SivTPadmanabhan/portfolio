@@ -745,40 +745,4 @@
       }
     });
   })();
-
-  /* ================================================================
-     Contact form
-     No backend is wired up yet. The form opens the visitor's own mail
-     app with the message pre-filled. The address is assembled at runtime
-     so it never appears in the page source as plain text.
-     ================================================================ */
-  var form = document.getElementById('contact-form');
-  var successMsg = form.querySelector('.form-msg--success');
-  var errorMsg = form.querySelector('.form-msg--error');
-
-  form.addEventListener('submit', function (e) {
-    e.preventDefault();
-    successMsg.hidden = true;
-    errorMsg.hidden = true;
-
-    var name = form.name.value.trim();
-    var email = form.email.value.trim();
-    var message = form.message.value.trim();
-
-    if (!name || !email || !message || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      errorMsg.hidden = false;
-      return;
-    }
-
-    try {
-      var addr = ['stpadmanabhan2448', 'gmail.com'].join('@');
-      var subject = encodeURIComponent('Portfolio message from ' + name);
-      var body = encodeURIComponent(message + '\n\nFrom: ' + name + ' <' + email + '>');
-      window.location.href = 'mailto:' + addr + '?subject=' + subject + '&body=' + body;
-      successMsg.hidden = false;
-      form.reset();
-    } catch (err) {
-      errorMsg.hidden = false;
-    }
-  });
 })();

@@ -521,6 +521,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   white-space: nowrap;
 }
 
+.pcard__dates {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  letter-spacing: 0.04em;
+  color: var(--color-dim);
+  margin-top: -6px;
+}
+
 .pcard__blurb {
   font-size: 16px;
   font-weight: var(--weight-body);
@@ -684,48 +692,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   flex-wrap: wrap;
 }
 
-.contact__form {
-  display: grid;
-  gap: var(--space-4);
-  padding-top: var(--space-2);
-}
-
-.field { display: grid; gap: 10px; }
-
-.field label {
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-dim);
-}
-
-.field input,
-.field textarea {
-  background: transparent;
-  border: none;
-  border-bottom: 1px solid rgba(244, 246, 251, 0.2);
-  border-radius: 0;
-  padding: 10px 2px 14px;
-  color: var(--color-chalk);
-  font-family: var(--font-sans);
-  font-size: 18px;
-  font-weight: 300;
-  transition: border-color var(--duration-micro) ease;
-  resize: vertical;
-}
-.field input::placeholder, .field textarea::placeholder { color: var(--color-dim); }
-.field input:focus, .field textarea:focus {
-  outline: none;
-  box-shadow: none;
-  border-bottom-color: var(--color-voltage-blue);
-}
-
-.contact__form .btn-glass { justify-self: start; margin-top: var(--space-2); }
-
-.form-msg { font-size: 16px; }
-.form-msg--success { color: var(--color-chalk); }
-.form-msg--error { color: var(--color-slate-mist); }
+.contact__cta { padding-top: var(--space-2); }
+.contact__cta .btn-glass { justify-self: start; }
 
 /* ---------- Footer ---------- */
 .footer { padding-block: var(--space-8) var(--space-6); }
