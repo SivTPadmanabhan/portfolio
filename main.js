@@ -314,6 +314,9 @@
 
       for (var k = 0; k < rimTargets.length; k++) {
         var target = rimTargets[k];
+        // scroll-reactive: weight each bin by how squarely it faces the
+        // viewport light, so the bright arc sweeps as the element scrolls
+        var phi = viewportLightAngle(target.el);
         var alphas = [];
         var maxB = 0;
         for (var b = 0; b < RIM_BINS; b++) {
@@ -322,6 +325,8 @@
           var px = target.cx + Math.sin(theta) * target.rx;
           var py = target.cy - Math.cos(theta) * target.ry;
           var bright = sampleShader(px, py, hw, hh, time);
+          var facing = Math.max(0, Math.cos(theta - phi));
+          bright *= 0.4 + 0.6 * facing;
           if (bright > maxB) maxB = bright;
           alphas.push(0.03 + bright * 0.45);
         }
@@ -343,6 +348,69 @@
       updateRims(time);
     }
 
+    /* ---- Scroll-reactive rims: a fixed scene light hangs above the
+       viewport's top center. As glass travels past it while scrolling,
+       the specular arc sweeps around the border, and scroll velocity
+       briefly flares its brightness before it settles. ---- */
+    var scrollTargets = []; // glass outside the hero (no shader to sample)
+    var REST_BOOST = 0.3;
+    var rimBoost = REST_BOOST;
+
+    // conic-convention angle (0 = 12 o'clock, clockwise) from the
+    // element's viewport center toward the scene light
+    function viewportLightAngle(el) {
+      var r = el.getBoundingClientRect();
+      var dx = window.innerWidth / 2 - (r.left + r.width / 2);
+      var dy = -window.innerHeight * 0.25 - (r.top + r.height / 2);
+      return Math.atan2(dx, -dy);
+    }
+
+    function scrollRimGradient(phi, boost) {
+      var stops = [];
+      for (var b = 0; b <= RIM_BINS; b++) {
+        var theta = ((b % RIM_BINS) / RIM_BINS) * Math.PI * 2;
+        var facing = Math.max(0, Math.cos(theta - phi));
+        var a = 0.04 + facing * facing * (0.08 + 0.38 * boost);
+        stops.push('rgba(255,255,255,' + a.toFixed(3) + ') ' +
+                   ((b / RIM_BINS) * 360).toFixed(1) + 'deg');
+      }
+      return 'conic-gradient(from 0deg at 50% 50%, ' + stops.join(', ') + ')';
+    }
+
+    function updateScrollRims() {
+      var vh = window.innerHeight;
+      for (var k = 0; k < scrollTargets.length; k++) {
+        var el = scrollTargets[k].el;
+        var r = el.getBoundingClientRect();
+        if (!r.width || r.bottom < -80 || r.top > vh + 80) continue;
+        el.style.setProperty('--rim-gradient', scrollRimGradient(viewportLightAngle(el), rimBoost));
+        el.style.setProperty('--rim-intensity', (0.2 + rimBoost * 0.5).toFixed(3));
+      }
+    }
+
+    // velocity flare: spikes with scroll speed, decays back to rest
+    var scrollTicking = false;
+    var lastScrollY = window.pageYOffset;
+    function scrollRimTick() {
+      updateScrollRims();
+      if (rimBoost > REST_BOOST + 0.01) {
+        rimBoost = REST_BOOST + (rimBoost - REST_BOOST) * 0.88;
+        requestAnimationFrame(scrollRimTick);
+      } else {
+        rimBoost = REST_BOOST;
+        scrollTicking = false;
+      }
+    }
+    function onScrollRims() {
+      var y = window.pageYOffset;
+      rimBoost = Math.min(1, Math.max(rimBoost, REST_BOOST + Math.abs(y - lastScrollY) / 60));
+      lastScrollY = y;
+      if (!scrollTicking) {
+        scrollTicking = true;
+        requestAnimationFrame(scrollRimTick);
+      }
+    }
+
     // Faint top-lit ring for glass sitting on the flat void (contact
     // button, project flyout panel): dark edge, no white outline.
     var DIM_RIM = 'conic-gradient(from 0deg at 50% 50%, ' +
@@ -354,6 +422,7 @@
       try {
         var lensImages = [];
         rimTargets = [];
+        scrollTargets = [];
 
         glasses.forEach(function (el) {
           var w = el.offsetWidth;
@@ -389,6 +458,7 @@
           } else {
             el.style.setProperty('--rim-gradient', DIM_RIM);
             el.style.setProperty('--rim-intensity', '0.25');
+            scrollTargets.push({ el: el });
           }
 
           if (inHero) lensImages.push({ map: map, x: pos.x, y: pos.y, w: w, h: h });
@@ -396,6 +466,7 @@
 
         mountLenses(lensImages);
 
+        updateScrollRims(); // settle non-hero rims onto the scene light
         if (reducedMotion && heroShaderActive) updateRims(40.0);
       } catch (err) {
         // any failure: skip the refraction, the CSS glass stands alone
@@ -442,7 +513,10 @@
       } else {
         refresh();
       }
-      if (!reducedMotion) frameHooks.push(rimHook);
+      if (!reducedMotion) {
+        frameHooks.push(rimHook);
+        window.addEventListener('scroll', onScrollRims, { passive: true });
+      }
     }
     if (document.readyState === 'complete') start();
     else window.addEventListener('load', start);
@@ -492,7 +566,7 @@
       i += 1;
       list.style.setProperty('--ri', i);
       if (i >= last) clearInterval(timer);
-    }, 900);
+    }, 1900);
   })();
 
   /* ================================================================
@@ -523,6 +597,7 @@
     var templates = Array.prototype.slice.call(document.querySelectorAll('template.project-detail'));
     var panel = overlay.querySelector('.project-overlay__panel');
     var titleEl = overlay.querySelector('.project-overlay__title');
+    var stackEl = overlay.querySelector('.project-overlay__stack');
     var bodyEl = overlay.querySelector('.project-overlay__body');
     var closeBtn = overlay.querySelector('.project-overlay__close');
 
@@ -530,9 +605,24 @@
     var lastFocused = null;
     var closing = false;
 
-    function fill(index) {
+    function fill(index, card) {
       var tpl = templates[index];
       titleEl.innerHTML = tpl.dataset.title;
+      // carry the card's skills into the flyout as chips
+      var stack = card ? card.querySelector('.pcard__stack') : null;
+      if (stackEl) {
+        stackEl.innerHTML = '';
+        if (stack) {
+          stack.textContent.split('·').forEach(function (skill) {
+            skill = skill.trim();
+            if (!skill) return;
+            var tag = document.createElement('span');
+            tag.className = 'skills__tag';
+            tag.textContent = skill;
+            stackEl.appendChild(tag);
+          });
+        }
+      }
       bodyEl.innerHTML = '';
       bodyEl.appendChild(tpl.content.cloneNode(true));
     }
@@ -552,7 +642,7 @@
     function open(index, card) {
       sourceCard = card;
       closing = false;
-      fill(index);
+      fill(index, card);
       lastFocused = document.activeElement;
       overlay.hidden = false;
       document.body.style.overflow = 'hidden';
