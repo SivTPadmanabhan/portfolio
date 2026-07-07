@@ -618,6 +618,7 @@
     var templates = Array.prototype.slice.call(document.querySelectorAll('template.project-detail'));
     var panel = overlay.querySelector('.project-overlay__panel');
     var titleEl = overlay.querySelector('.project-overlay__title');
+    var datesEl = overlay.querySelector('.project-overlay__dates');
     var stackEl = overlay.querySelector('.project-overlay__stack');
     var bodyEl = overlay.querySelector('.project-overlay__body');
     var closeBtn = overlay.querySelector('.project-overlay__close');
@@ -629,6 +630,12 @@
     function fill(index, card) {
       var tpl = templates[index];
       titleEl.innerHTML = tpl.dataset.title;
+      // carry the card's worked-on dates into the flyout
+      var dates = card ? card.querySelector('.pcard__dates') : null;
+      if (datesEl) {
+        datesEl.textContent = dates ? dates.textContent : '';
+        datesEl.hidden = !dates;
+      }
       // carry the card's skills into the flyout as chips
       var stack = card ? card.querySelector('.pcard__stack') : null;
       if (stackEl) {

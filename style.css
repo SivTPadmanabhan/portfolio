@@ -371,24 +371,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7), 0 2px 20px rgba(0, 0, 0, 0.6);
 }
 
-.status-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--font-mono);
-  font-size: var(--text-caption);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--color-slate-mist);
-  margin-bottom: var(--space-4);
-}
-.status-label__dot {
-  width: 6px; height: 6px;
-  border-radius: 50%;
-  background: var(--color-neon-amber);
-  box-shadow: 0 0 8px rgba(255, 179, 0, 0.8);
-}
-
 /* No text-shadow here: the shader itself is attenuated near its center
    (main.js) so the name sits on a naturally dim patch, and a blurred
    shadow on the rotator items leaks past the overflow mask, ghosting
@@ -590,6 +572,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   margin-bottom: 10px;
 }
 
+.project-overlay__dates {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  letter-spacing: 0.04em;
+  color: var(--color-dim);
+  margin-bottom: var(--space-3);
+}
+.project-overlay__dates[hidden] { display: none; }
+
 /* the card's skills ride along into the flyout as chips (filled by main.js) */
 .project-overlay__stack {
   display: flex;
@@ -675,6 +666,46 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   white-space: nowrap;
 }
 
+/* ---------- Awards ---------- */
+.awards {
+  margin-top: var(--space-8);
+  display: grid;
+  gap: 0;
+}
+
+.award {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  padding-block: var(--space-4);
+  border-top: 1px solid rgba(244, 246, 251, 0.08);
+}
+.award:first-child { border-top: none; padding-top: 0; }
+
+.award__title {
+  font-size: 19px;
+  font-weight: var(--weight-heading);
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+  color: var(--color-chalk);
+}
+
+.award__meta {
+  font-family: var(--font-mono);
+  font-size: var(--text-caption);
+  letter-spacing: 0.04em;
+  color: var(--color-dim);
+}
+
+.award__note {
+  font-size: 16px;
+  color: var(--color-slate-mist);
+  max-width: 640px;
+}
+
+/* project tag reuses .skills__tag but may hold a long project name */
+.award__tag { white-space: normal; }
+
 /* ---------- Contact ---------- */
 .contact {
   display: grid;
@@ -684,16 +715,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 
 .contact__intro p:not(.eyebrow) { margin-top: var(--space-3); max-width: 460px; }
-.contact__links {
-  margin-top: var(--space-4);
+
+/* all three buttons in one row to the right of the blurb */
+.contact__actions {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   flex-wrap: wrap;
 }
-
-.contact__cta { padding-top: var(--space-2); }
-.contact__cta .btn-glass { justify-self: start; }
 
 /* ---------- Footer ---------- */
 .footer { padding-block: var(--space-8) var(--space-6); }
