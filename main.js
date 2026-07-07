@@ -577,15 +577,17 @@
       return;
     }
 
+    // the opening phrase holds half a second longer than the rest
     var i = 0;
-    var timer = setInterval(function () {
+    function step() {
       i += 1;
       list.style.setProperty('--ri', i);
       (function (done) {
         setTimeout(function () { hideAbove(done); }, 650); // after the 0.55s slide
       })(i);
-      if (i >= last) clearInterval(timer);
-    }, 1900);
+      if (i < last) setTimeout(step, 1900);
+    }
+    setTimeout(step, 2400);
   })();
 
   /* ================================================================
