@@ -100,6 +100,10 @@
       '      color[j] += lineWidth*float(i*i) / abs(fract(t - 0.01*float(j)+float(i)*0.01)*5.0 - length(uv) + mod(uv.x+uv.y, 0.2));\n' +
       '    }\n' +
       '  }\n' +
+      // dim near the center so the name reads without a backdrop: rings
+      // start faint, gain intensity fast, and level off past the ellipse
+      '  float att = 0.12 + 0.88 * smoothstep(0.18, 0.62, length(uv * vec2(0.62, 1.0)));\n' +
+      '  color *= att;\n' +
       '  gl_FragColor = vec4(color[0],color[1],color[2],1.0);\n' +
       '}';
 
@@ -303,7 +307,11 @@
         }
         sum += Math.min(c, 2);
       }
-      return Math.min(1, sum / 2.4);
+      // same center attenuation as the fragment shader (keep in sync)
+      var er = Math.sqrt(ux * 0.62 * ux * 0.62 + uy * uy);
+      var s = Math.min(1, Math.max(0, (er - 0.18) / (0.62 - 0.18)));
+      s = s * s * (3 - 2 * s); // smoothstep
+      return Math.min(1, sum / 2.4) * (0.12 + 0.88 * s);
     }
 
     function updateRims(time) {

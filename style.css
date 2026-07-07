@@ -125,15 +125,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   letter-spacing: -0.035em;
   color: var(--color-chalk);
 }
-.section-title__num {
-  font-family: var(--font-mono);
-  font-size: 0.4em;
-  font-weight: 400;
-  letter-spacing: 0.08em;
-  color: var(--color-neon-amber);
-  vertical-align: 1.05em;
-  margin-right: 0.3em;
-}
 
 .grad-rule {
   display: block;
@@ -241,10 +232,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
    the button's edge, and the radial background layers put the same light
    under the glass tint so it reads through the smoked surface. */
 .btn-glass {
+  /* three glow levels: dim at rest, bright on hover, a quick extra
+     bump while pressed (the box-shadow transition rides it back down) */
   --glow-outer:
-    0 0 34px -2px rgba(37, 71, 255, 0.70),
-    0 10px 44px -4px rgba(255, 106, 0, 0.50),
-    0 0 76px -6px rgba(255, 214, 10, 0.32);
+    0 0 30px -3px rgba(37, 71, 255, 0.48),
+    0 9px 40px -5px rgba(255, 106, 0, 0.34),
+    0 0 68px -8px rgba(255, 214, 10, 0.22);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -266,16 +259,22 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     rgba(5, 7, 12, 0.62);
   box-shadow: var(--glow-outer);
   transition: transform 0.4s cubic-bezier(0.4, 1.5, 0.3, 1),
-              box-shadow 0.4s ease;
+              box-shadow 0.25s ease;
 }
 .btn-glass:hover {
   transform: scale(1.04);
   box-shadow:
-    0 0 36px -4px rgba(37, 71, 255, 0.80),
-    0 8px 44px -6px rgba(255, 106, 0, 0.55),
-    0 0 72px -8px rgba(255, 214, 10, 0.36);
+    0 0 36px -4px rgba(37, 71, 255, 0.78),
+    0 8px 44px -6px rgba(255, 106, 0, 0.54),
+    0 0 72px -8px rgba(255, 214, 10, 0.34);
 }
-.btn-glass:active { transform: scale(0.96); }
+.btn-glass:active {
+  transform: scale(0.96);
+  box-shadow:
+    0 0 42px -3px rgba(37, 71, 255, 0.95),
+    0 8px 50px -5px rgba(255, 106, 0, 0.68),
+    0 0 84px -6px rgba(255, 214, 10, 0.44);
+}
 .btn-glass:focus-visible {
   box-shadow: var(--focus-ring), var(--glow-outer);
   border-radius: var(--radius-pill);
@@ -389,24 +388,16 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   box-shadow: 0 0 8px rgba(255, 179, 0, 0.8);
 }
 
-/* Black pool behind the name: solid over the text, then a fast radial
-   falloff into the shader, so the rings radiate out from behind it */
-.hero__shade {
-  padding: var(--space-6) var(--space-12);
-  max-width: 100%;
-  margin-bottom: var(--space-4);
-  background: radial-gradient(ellipse closest-side,
-    rgba(0, 0, 0, 0.92) 0%, rgba(0, 0, 0, 0.86) 52%, rgba(0, 0, 0, 0) 100%);
-}
-
-/* No text-shadow here: the black shade carries the contrast, and a
-   blurred shadow on the rotator items leaks past the overflow mask,
-   ghosting the outgoing phrase (D33) */
+/* No text-shadow here: the shader itself is attenuated near its center
+   (main.js) so the name sits on a naturally dim patch, and a blurred
+   shadow on the rotator items leaks past the overflow mask, ghosting
+   the outgoing phrase (D33) */
 .hero__name {
   font-size: clamp(30px, 5.2vw, 68px);
   line-height: 1.15;
   letter-spacing: -0.035em;
   text-shadow: none;
+  margin-bottom: var(--space-6);
 }
 
 /* One-shot phrase rotator: scrolls through the intro lines once after
@@ -489,11 +480,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   font: inherit;
   cursor: pointer;
   transition: transform var(--duration-micro) ease,
-              background var(--duration-micro) ease;
+              background var(--duration-micro) ease,
+              box-shadow var(--duration-micro) ease;
 }
 .pcard:hover {
   transform: translateY(-4px);
   background: rgba(18, 22, 32, 0.66);
+  /* same brand glow as the buttons, scaled up and toned down */
+  box-shadow:
+    0 0 44px -8px rgba(37, 71, 255, 0.38),
+    0 14px 56px -10px rgba(255, 106, 0, 0.26),
+    0 0 88px -14px rgba(255, 214, 10, 0.16);
 }
 
 .pcard__num {
@@ -673,7 +670,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 
 .contact__intro p:not(.eyebrow) { margin-top: var(--space-3); max-width: 460px; }
-.contact__links { margin-top: var(--space-4); }
+.contact__links {
+  margin-top: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
 
 .contact__form {
   display: grid;
@@ -762,7 +765,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .nav__links { gap: var(--space-3); width: 100%; justify-content: space-between; }
   .nav__links a { font-size: 12px; }
   .hero__content { padding-block: var(--space-12); padding-top: var(--space-16); }
-  .hero__shade { padding: var(--space-4) var(--space-6); }
   .hero__name { font-size: clamp(21px, 6.6vw, 30px); }
 }
 
