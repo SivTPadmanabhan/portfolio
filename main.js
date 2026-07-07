@@ -577,7 +577,7 @@
       return;
     }
 
-    // the opening phrase holds half a second longer than the rest
+    // the opening phrase holds a full second longer than the rest
     var i = 0;
     function step() {
       i += 1;
@@ -587,7 +587,7 @@
       })(i);
       if (i < last) setTimeout(step, 1900);
     }
-    setTimeout(step, 2400);
+    setTimeout(step, 2900);
   })();
 
   /* ================================================================
