@@ -727,33 +727,41 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* tag/note sit at the card bottom, like .pcard__stack */
 .award__tag, .award__note { margin-top: auto; }
-/* project tag reuses .skills__tag but may hold a long project name */
-.award__tag { white-space: normal; }
+/* project tag reuses .skills__tag but may hold a long, wrapping project name,
+   so it needs comfortable line spacing instead of the chip's line-height:1 */
+.award__tag {
+  white-space: normal;
+  line-height: 1.45;
+  padding-block: 9px;
+}
 
 /* ---------- Contact ---------- */
-.contact {
+/* heading sits in its own row so it's excluded from the button centering */
+.contact__body {
+  margin-top: var(--space-8);
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-12);
-  align-items: center;
+  align-items: center; /* vertically center the button group to the blurb only */
 }
 
-.contact__intro p:not(.eyebrow) { margin-top: var(--space-3); max-width: 460px; }
+.contact__blurb { max-width: 460px; }
 
-/* form button on top, GitHub + LinkedIn centered on a row beneath it;
-   the whole group shrinks to content and centers next to the blurb */
+/* form button on top; GitHub + LinkedIn equal-width beneath, together spanning
+   the form's width. Group centers both ways relative to the blurb. */
 .contact__actions {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: var(--space-3);
   width: max-content;
+  justify-self: center;
 }
 .contact__sub-actions {
   display: flex;
-  justify-content: center;
   gap: var(--space-3);
 }
+.contact__sub-actions .btn-glass { flex: 1; }
 
 /* ---------- Footer ---------- */
 .footer { padding-block: var(--space-8) var(--space-6); }
@@ -787,7 +795,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 @media (max-width: 900px) {
   .section { padding-block: var(--space-16) 0; }
   #contact { padding-bottom: var(--space-16); }
-  .contact { grid-template-columns: 1fr; gap: var(--space-8); }
+  .contact__body { grid-template-columns: 1fr; gap: var(--space-8); }
   .skills__group { grid-template-columns: 1fr; gap: var(--space-1); }
   .project-overlay { padding-top: 84px; }
   .project-overlay__panel { width: 94vw; max-height: 76vh; padding: var(--space-4); }
