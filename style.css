@@ -450,7 +450,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 /* Cards are full liquid glass (.glass carries the tint, bevel, and
    scroll-reactive rim; the old 1px border and hover seam are gone) */
-.pcard {
+.pcard, .award {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -471,7 +471,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
               background var(--duration-micro) ease,
               box-shadow 0.45s ease;
 }
-.pcard:hover {
+.pcard:hover, .award:hover {
   transform: translateY(-4px);
   background: rgba(18, 22, 32, 0.66);
   /* same brand glow as the buttons, scaled up and toned down */
@@ -480,6 +480,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     0 14px 56px -10px rgba(255, 106, 0, 0.26),
     0 0 88px -14px rgba(255, 214, 10, 0.16);
 }
+/* awards look like project cards but do nothing on click */
+.award { cursor: default; }
+.award:hover .award__title { color: var(--color-neon-amber); }
 
 .pcard__num {
   font-family: var(--font-mono);
@@ -556,13 +559,29 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 
 .project-overlay__panel {
   width: min(920px, 92vw);
-  max-height: 82vh;
+  max-height: 85vh;
   overflow-y: auto;
   padding: var(--space-6);
   border-radius: 24px;
   transform-origin: center;
   transition: transform 0.4s var(--ease-glide), opacity 0.3s ease;
   will-change: transform;
+  /* slim, contained scrollbar instead of the browser default (Firefox) */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(152, 160, 184, 0.45) transparent;
+}
+/* slim, contained scrollbar (WebKit) */
+.project-overlay__panel::-webkit-scrollbar { width: 8px; }
+.project-overlay__panel::-webkit-scrollbar-track { background: transparent; }
+.project-overlay__panel::-webkit-scrollbar-thumb {
+  background: rgba(152, 160, 184, 0.35);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.project-overlay__panel::-webkit-scrollbar-thumb:hover {
+  background: rgba(152, 160, 184, 0.55);
+  background-clip: padding-box;
 }
 
 .project-overlay__title {
@@ -599,6 +618,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .project-overlay__body p { font-size: 17px; max-width: 720px; }
 .project-overlay__body .btn-glass { justify-self: start; margin-top: var(--space-3); }
+
+/* multiple CTAs share one row so the panel stays short enough to fit */
+.project-overlay__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+.project-overlay__cta .btn-glass { margin-top: 0; }
 
 .project-overlay__close {
   position: absolute;
@@ -666,21 +694,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   white-space: nowrap;
 }
 
-/* ---------- Awards ---------- */
+/* ---------- Awards: same glass cards as projects, but not clickable ---------- */
 .awards {
   margin-top: var(--space-8);
   display: grid;
-  gap: 0;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: var(--space-3);
 }
-
-.award {
-  display: grid;
-  gap: 10px;
-  justify-items: start;
-  padding-block: var(--space-4);
-  border-top: 1px solid rgba(244, 246, 251, 0.08);
-}
-.award:first-child { border-top: none; padding-top: 0; }
+/* .award shares the .pcard base + hover rules above; layout/spacing come from there */
 
 .award__title {
   font-size: 19px;
@@ -688,6 +709,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   letter-spacing: -0.01em;
   line-height: 1.25;
   color: var(--color-chalk);
+  transition: color var(--duration-micro) ease;
 }
 
 .award__meta {
@@ -703,6 +725,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   max-width: 640px;
 }
 
+/* tag/note sit at the card bottom, like .pcard__stack */
+.award__tag, .award__note { margin-top: auto; }
 /* project tag reuses .skills__tag but may hold a long project name */
 .award__tag { white-space: normal; }
 
@@ -711,17 +735,24 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: var(--space-12);
-  align-items: start;
+  align-items: center;
 }
 
 .contact__intro p:not(.eyebrow) { margin-top: var(--space-3); max-width: 460px; }
 
-/* all three buttons in one row to the right of the blurb */
+/* form button on top, GitHub + LinkedIn centered on a row beneath it;
+   the whole group shrinks to content and centers next to the blurb */
 .contact__actions {
   display: flex;
+  flex-direction: column;
   align-items: center;
   gap: var(--space-3);
-  flex-wrap: wrap;
+  width: max-content;
+}
+.contact__sub-actions {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-3);
 }
 
 /* ---------- Footer ---------- */

@@ -12,7 +12,7 @@
   <meta property="og:description" content="Sivaditya Padmanabhan is a software engineer and machine learning engineer at Princeton building full-stack products and AI systems: multi-agent platforms, RAG pipelines, and LLM evaluation tooling. See projects and get in touch.">
   <meta property="og:type" content="website">
   <link rel="preload" href="fonts/inter-var-latin.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="style.css?v=20260707-5">
+  <link rel="stylesheet" href="style.css?v=20260707-6">
 </head>
 <body>
 
@@ -201,8 +201,10 @@
   <template class="project-detail" data-title="Al.ai">
     <p>Al.ai is a cross-platform Flutter app for Alzheimer's and dementia patient safety, built in 48 hours at a hackathon. It serves three roles at once. Patients get a calming voice companion (Gemini for conversation, ElevenLabs for voice) and a unique QR wearable. Bystanders who scan it see privacy-filtered guidance, first name only, and the caregiver is notified automatically. Caregivers get a full dashboard: real-time location with geofence breach alerts, scan notifications, and patient management.</p>
     <p>Under the hood: FastAPI and PostgreSQL, JWT auth, GPS tracking with geofencing, and Twilio SMS for real-time alerts.</p>
-    <a class="btn-glass glass" href="https://github.com/SivTPadmanabhan/Al.Ai" target="_blank" rel="noopener"><span class="btn-glass__label">View the code on GitHub <span aria-hidden="true">&rarr;</span></span></a>
-    <a class="btn-glass glass" href="https://devpost.com/software/al-ai" target="_blank" rel="noopener"><span class="btn-glass__label">View on Devpost <span aria-hidden="true">&rarr;</span></span></a>
+    <div class="project-overlay__cta">
+      <a class="btn-glass glass" href="https://github.com/SivTPadmanabhan/Al.Ai" target="_blank" rel="noopener"><span class="btn-glass__label">View the code on GitHub <span aria-hidden="true">&rarr;</span></span></a>
+      <a class="btn-glass glass" href="https://devpost.com/software/al-ai" target="_blank" rel="noopener"><span class="btn-glass__label">View on Devpost <span aria-hidden="true">&rarr;</span></span></a>
+    </div>
   </template>
 
   <template class="project-detail" data-title="English&rarr;French Transformer (Hello to Bonjour)">
@@ -230,6 +232,7 @@
   <template class="project-detail" data-title="The Effect of Dimples on a Mid-Sized Automobile's Aerodynamics">
     <p>Golf balls fly farther because their dimples manage the airflow around them, so what happens if you dimple a car? This project studied how adding divots to the rear half of a mid-sized automobile, and varying their dimensions, changes the drag it incurs, and therefore its fuel efficiency.</p>
     <p>Candidate designs were modeled in CAD and evaluated with CFD and wind-tunnel analysis; the highest-performing shapes were then 3D-printed to reproduce the results in real-life wind-tunnel testing.</p>
+    <a class="btn-glass glass" href="https://drive.google.com/file/d/18Pb_4OMiseTw_5X5ZaVwwhdCt9db3Z5L/view?usp=sharing" target="_blank" rel="noopener"><span class="btn-glass__label">View the research <span aria-hidden="true">&rarr;</span></span></a>
   </template>
 
   <!-- Fullscreen project flyout: the detail panel flies out of the
@@ -251,37 +254,37 @@
       <span class="grad-rule reveal" aria-hidden="true"></span>
 
       <div class="awards">
-        <div class="award reveal">
+        <div class="award glass reveal">
           <h3 class="award__title">hackMHS IX General 1st Place</h3>
           <p class="award__meta">hackMHS &middot; May 2024</p>
           <span class="skills__tag award__tag">Epi-Sense</span>
         </div>
-        <div class="award reveal">
+        <div class="award glass reveal">
           <h3 class="award__title">2024 Gold Medalist, Jersey City Medical Center / RWJBarnabas Health STEM Showcase</h3>
           <p class="award__meta">RWJBarnabas Health &middot; Mar 2024</p>
           <span class="skills__tag award__tag">Low-Maintenance Air-Powered Water Filtration (Modified Trompe)</span>
         </div>
-        <div class="award reveal">
+        <div class="award glass reveal">
           <h3 class="award__title">First Place, PicoXproject Design Competition</h3>
           <p class="award__meta">PicoSolutions Group &middot; Jul 2023</p>
           <p class="award__note">Designed a 3D-printable portable chess board to the competition's parameters, taking first place.</p>
         </div>
-        <div class="award reveal">
+        <div class="award glass reveal">
           <h3 class="award__title">2023 Sustainable Design STEAM Challenge, Best Project</h3>
           <p class="award__meta">Jersey City Public Schools &middot; Jun 2023</p>
           <span class="skills__tag award__tag">SolPort</span>
         </div>
-        <div class="award reveal">
+        <div class="award glass reveal">
           <h3 class="award__title">2023 Gold Medalist, Jersey City Medical Center / RWJBarnabas Health STEM Showcase</h3>
           <p class="award__meta">RWJBarnabas Health &middot; Mar 2023</p>
           <span class="skills__tag award__tag">The Effect of Dimples (Variation in Dimple Sizes, Year 2)</span>
         </div>
-        <div class="award reveal">
+        <div class="award glass reveal">
           <h3 class="award__title">Regeneron ISEF Finalist</h3>
           <p class="award__meta">Society for Science &middot; May 2022</p>
           <span class="skills__tag award__tag">The Effect of Dimples on a Mid-Sized Automobile's Aerodynamics</span>
         </div>
-        <div class="award reveal">
+        <div class="award glass reveal">
           <h3 class="award__title">2022 Gold Medalist, Jersey City Medical Center / RWJBarnabas Health STEM Showcase</h3>
           <p class="award__meta">RWJBarnabas Health &middot; Mar 2022</p>
           <span class="skills__tag award__tag">The Effect of Dimples on a Mid-Sized Automobile's Aerodynamics</span>
@@ -386,12 +389,14 @@
         <a class="btn-glass glass" href="https://docs.google.com/forms/d/e/1FAIpQLSf6oAHY3jb_9qEB_4xidqP5zQfNGUXDni7DhDyPPDPtDkDZew/viewform" target="_blank" rel="noopener">
           <span class="btn-glass__label">Open the contact form <span aria-hidden="true">&rarr;</span></span>
         </a>
-        <a class="btn-glass glass" href="https://github.com/SivTPadmanabhan" target="_blank" rel="noopener">
-          <span class="btn-glass__label">GitHub</span>
-        </a>
-        <a class="btn-glass glass" href="https://www.linkedin.com/in/sivaditya-padmanabhan/" target="_blank" rel="noopener">
-          <span class="btn-glass__label">LinkedIn</span>
-        </a>
+        <div class="contact__sub-actions">
+          <a class="btn-glass glass" href="https://github.com/SivTPadmanabhan" target="_blank" rel="noopener">
+            <span class="btn-glass__label">GitHub</span>
+          </a>
+          <a class="btn-glass glass" href="https://www.linkedin.com/in/sivaditya-padmanabhan/" target="_blank" rel="noopener">
+            <span class="btn-glass__label">LinkedIn</span>
+          </a>
+        </div>
       </div>
     </div>
   </section>
