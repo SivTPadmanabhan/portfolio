@@ -351,6 +351,18 @@
     var RIM_BINS = 16;
     var rimTargets = []; // hero glass elements: {el, cx, cy, rx, ry}
 
+    // per-bin constants (sample direction + gradient stop angle) hoisted out
+    // of the per-frame loops; conic convention: 0 = 12 o'clock, clockwise
+    var RIM_SIN = [], RIM_COS = [], RIM_DEG = [];
+    (function () {
+      for (var b = 0; b <= RIM_BINS; b++) {
+        var theta = (b / RIM_BINS) * Math.PI * 2;
+        RIM_SIN.push(Math.sin(theta));
+        RIM_COS.push(Math.cos(theta));
+        RIM_DEG.push(((b / RIM_BINS) * 360).toFixed(1));
+      }
+    })();
+
     // Port of the hero fragment for one point (hero-local CSS px).
     // gl_FragCoord runs bottom-up, hence the y flip.
     function sampleShader(x, y, heroW, heroH, time) {
@@ -385,20 +397,26 @@
       var hh = hero.offsetHeight;
       if (!hw || !hh) return;
 
-      for (var k = 0; k < rimTargets.length; k++) {
-        var target = rimTargets[k];
+      var k, target;
+      // batch all layout reads before any style writes (no forced reflows)
+      for (k = 0; k < rimTargets.length; k++) {
+        rimTargets[k].phi = lightAngleFromRect(rimTargets[k].el.getBoundingClientRect());
+      }
+
+      for (k = 0; k < rimTargets.length; k++) {
+        target = rimTargets[k];
         // scroll-reactive: weight each bin by how squarely it faces the
         // viewport light, so the bright arc sweeps as the element scrolls
-        var phi = viewportLightAngle(target.el);
+        var cphi = Math.cos(target.phi);
+        var sphi = Math.sin(target.phi);
         var alphas = [];
         var maxB = 0;
         for (var b = 0; b < RIM_BINS; b++) {
-          // conic gradients start at 12 o'clock and run clockwise
-          var theta = (b / RIM_BINS) * Math.PI * 2;
-          var px = target.cx + Math.sin(theta) * target.rx;
-          var py = target.cy - Math.cos(theta) * target.ry;
+          var px = target.cx + RIM_SIN[b] * target.rx;
+          var py = target.cy - RIM_COS[b] * target.ry;
           var bright = sampleShader(px, py, hw, hh, time);
-          var facing = Math.max(0, Math.cos(theta - phi));
+          // cos(theta - phi) via the hoisted per-bin tables
+          var facing = Math.max(0, RIM_COS[b] * cphi + RIM_SIN[b] * sphi);
           bright *= 0.4 + 0.6 * facing;
           if (bright > maxB) maxB = bright;
           alphas.push(0.03 + bright * 0.45);
@@ -406,11 +424,24 @@
         var stops = [];
         for (b = 0; b <= RIM_BINS; b++) {
           stops.push('rgba(255,255,255,' + alphas[b % RIM_BINS].toFixed(3) + ') ' +
-                     ((b / RIM_BINS) * 360).toFixed(1) + 'deg');
+                     RIM_DEG[b] + 'deg');
         }
-        target.el.style.setProperty('--rim-gradient',
-          'conic-gradient(from 0deg at 50% 50%, ' + stops.join(', ') + ')');
-        target.el.style.setProperty('--rim-intensity', maxB.toFixed(3));
+        setRim(target,
+          'conic-gradient(from 0deg at 50% 50%, ' + stops.join(', ') + ')',
+          maxB.toFixed(3));
+      }
+    }
+
+    // write the rim style only when it actually changed; identical strings
+    // are skipped so still frames cost no style invalidation
+    function setRim(target, gradient, intensity) {
+      if (gradient !== target.lastGradient) {
+        target.el.style.setProperty('--rim-gradient', gradient);
+        target.lastGradient = gradient;
+      }
+      if (intensity !== target.lastIntensity) {
+        target.el.style.setProperty('--rim-intensity', intensity);
+        target.lastIntensity = intensity;
       }
     }
 
@@ -431,33 +462,38 @@
 
     // conic-convention angle (0 = 12 o'clock, clockwise) from the
     // element's viewport center toward the scene light
-    function viewportLightAngle(el) {
-      var r = el.getBoundingClientRect();
+    function lightAngleFromRect(r) {
       var dx = window.innerWidth / 2 - (r.left + r.width / 2);
       var dy = -window.innerHeight * 0.25 - (r.top + r.height / 2);
       return Math.atan2(dx, -dy);
     }
 
     function scrollRimGradient(phi, boost) {
+      var cphi = Math.cos(phi);
+      var sphi = Math.sin(phi);
       var stops = [];
       for (var b = 0; b <= RIM_BINS; b++) {
-        var theta = ((b % RIM_BINS) / RIM_BINS) * Math.PI * 2;
-        var facing = Math.max(0, Math.cos(theta - phi));
+        var i = b % RIM_BINS;
+        // cos(theta - phi) via the hoisted per-bin tables
+        var facing = Math.max(0, RIM_COS[i] * cphi + RIM_SIN[i] * sphi);
         var a = 0.04 + facing * facing * (0.08 + 0.38 * boost);
-        stops.push('rgba(255,255,255,' + a.toFixed(3) + ') ' +
-                   ((b / RIM_BINS) * 360).toFixed(1) + 'deg');
+        stops.push('rgba(255,255,255,' + a.toFixed(3) + ') ' + RIM_DEG[b] + 'deg');
       }
       return 'conic-gradient(from 0deg at 50% 50%, ' + stops.join(', ') + ')';
     }
 
     function updateScrollRims() {
       var vh = window.innerHeight;
-      for (var k = 0; k < scrollTargets.length; k++) {
-        var el = scrollTargets[k].el;
-        var r = el.getBoundingClientRect();
+      var k;
+      // batch all layout reads before any style writes (no forced reflows)
+      for (k = 0; k < scrollTargets.length; k++) {
+        scrollTargets[k].rect = scrollTargets[k].el.getBoundingClientRect();
+      }
+      var intensity = (0.2 + rimBoost * 0.5).toFixed(3);
+      for (k = 0; k < scrollTargets.length; k++) {
+        var r = scrollTargets[k].rect;
         if (!r.width || r.bottom < -80 || r.top > vh + 80) continue;
-        el.style.setProperty('--rim-gradient', scrollRimGradient(viewportLightAngle(el), rimBoost));
-        el.style.setProperty('--rim-intensity', (0.2 + rimBoost * 0.5).toFixed(3));
+        setRim(scrollTargets[k], scrollRimGradient(lightAngleFromRect(r), rimBoost), intensity);
       }
     }
 
