@@ -259,11 +259,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   text-transform: uppercase;
   color: var(--color-chalk);
   transform-origin: center;
-  /* frosted-pane tint: a faint white veil over a light dark smoke. Over the
-     hero shader the veil + blur read as milky frost; over the black void the
-     veil alone paints the same soft grey pane (no backdrop-filter needed). */
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
-              rgba(0, 0, 0, 0.42);
+  /* frosted-pane tint matched to the nav: a milky white veil over a lifted
+     dark slate. Over the hero shader the veil + blur read as milky frost; over
+     the black void the veil alone paints the same frosted grey pane (no
+     backdrop-filter needed). */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04)),
+              rgba(14, 17, 25, 0.58);
   box-shadow:
     0 0 0 -6px rgba(37, 71, 255, 0),
     0 0 0 -8px rgba(255, 106, 0, 0),
@@ -517,12 +518,13 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   font: inherit;
   cursor: pointer;
   transform-origin: center;
-  /* cosmetic frosted pane: a faint white veil (weaker than the buttons so a
-     big surface doesn't wash grey). Pure paint — cards sit on the flat black
-     void, so this looks identical to real backdrop frost without the filter
-     cost (see PERF-LOG.md, Perf 4). */
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
-              rgba(0, 0, 0, 0.42);
+  /* Frosted glass pane, matched to the nav look. Cards sit on the flat black
+     void where a real backdrop-filter has nothing to blur (see PERF-LOG.md,
+     Perf 4), so the frost is painted: a milky white veil over a lifted dark
+     slate base (not pure black) so the pane reads as translucent glass rather
+     than a hole in the void. */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.11), rgba(255, 255, 255, 0.035)),
+              rgba(14, 17, 25, 0.58);
   /* rest = collapsed transparent stack so the hover glow grows in, incl.
      the inset "under glass" layers that grow in like the buttons */
   box-shadow:
@@ -544,8 +546,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     /* springy pop like the buttons, halved (1.02) */
     transform: scale(1.02);
     /* hover lifts the veil a touch brighter than rest */
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)),
-                rgba(0, 0, 0, 0.42);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06)),
+                rgba(14, 17, 25, 0.58);
     /* same brand glow as the buttons, scaled up: outward layers dimmed 50%,
        inset layers glow underneath the glass at full strength */
     box-shadow:
@@ -560,8 +562,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .award:hover .award__title { color: var(--color-neon-amber); }
 }
 .pcard.is-lit, .award.is-lit {
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)),
-              rgba(0, 0, 0, 0.42);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06)),
+              rgba(14, 17, 25, 0.58);
   box-shadow:
     0 0 44px -8px rgba(37, 71, 255, 0.285),
     0 14px 56px -10px rgba(255, 106, 0, 0.195),
@@ -799,7 +801,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   padding: 8px 16px;
   border: none;
   border-radius: var(--radius-pill);
-  background: rgba(5, 7, 12, 0.62);
+  /* milky frost veil over dark slate, matched to the cards/buttons */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.10), rgba(255, 255, 255, 0.03)),
+              rgba(14, 17, 25, 0.60);
   white-space: nowrap;
   transform-origin: center;
   box-shadow:
