@@ -667,6 +667,22 @@
              'scale(' + sx.toFixed(4) + ',' + sy.toFixed(4) + ')';
     }
 
+    // hide the originating card while the panel is open so it isn't seen
+    // duplicated through the translucent backdrop. Hiding is instant (the panel
+    // covers it on open); showing rides the card's CSS opacity transition so it
+    // crossfades back in as the panel shrinks home (no mid-close blank frame).
+    function setCardHidden(hidden) {
+      if (!sourceCard) return;
+      if (hidden) {
+        sourceCard.style.transition = 'none';
+        sourceCard.style.opacity = '0';
+        void sourceCard.offsetWidth;   // commit the instant hide
+        sourceCard.style.transition = ''; // restore CSS transition (incl. opacity)
+      } else {
+        sourceCard.style.opacity = '';    // fades back in via CSS transition
+      }
+    }
+
     function open(index, card) {
       sourceCard = card;
       closing = false;
@@ -677,6 +693,7 @@
 
       if (reducedMotion) {
         overlay.classList.add('show');
+        setCardHidden(true);
         closeBtn.focus();
         return;
       }
@@ -685,6 +702,7 @@
       panel.style.transition = 'none';
       panel.style.transform = transformToCard();
       panel.style.opacity = '0.35';
+      setCardHidden(true);
       requestAnimationFrame(function () {
         overlay.classList.add('show');
         requestAnimationFrame(function () {
@@ -703,9 +721,11 @@
       if (reducedMotion || !sourceCard) {
         overlay.classList.remove('show');
         overlay.hidden = true;
+        setCardHidden(false);
       } else {
         // fly back into the originating card
         closing = true;
+        setCardHidden(false); // crossfade the card in while the panel shrinks home
         panel.style.transform = transformToCard();
         panel.style.opacity = '0';
         overlay.classList.remove('show');
@@ -717,7 +737,7 @@
           panel.style.opacity = '';
           void panel.offsetWidth; // commit before re-enabling transitions
           panel.style.transition = '';
-        }, 400);
+        }, 500);
       }
       if (lastFocused) lastFocused.focus();
     }
