@@ -115,7 +115,12 @@
       '  }\n' +
       // dim near the center so the name reads without a backdrop: rings
       // start faint, gain intensity fast, and level off past the ellipse
-      '  float att = 0.12 + 0.88 * smoothstep(0.18, 0.62, length(uv * vec2(0.62, 1.0)));\n' +
+      '  float base = smoothstep(0.18, 0.62, length(uv * vec2(0.62, 1.0)));\n' +
+      // asymmetric lift: brighten the band just below the name (uv.y < 0, where
+      // the hero buttons sit) so the shader shows through their frosted glass
+      // like the nav. Leaves the name, its wide sides, and the upper hero as-is.
+      '  float belowName = smoothstep(0.18, 0.32, -uv.y);\n' +
+      '  float att = 0.12 + 0.88 * max(base, belowName);\n' +
       '  return color * att;\n' +
       '}\n' +
       'void main(void) {\n' +
@@ -386,8 +391,12 @@
       }
       // same center attenuation as the fragment shader (keep in sync)
       var er = Math.sqrt(ux * 0.62 * ux * 0.62 + uy * uy);
-      var s = Math.min(1, Math.max(0, (er - 0.18) / (0.62 - 0.18)));
-      s = s * s * (3 - 2 * s); // smoothstep
+      var base = Math.min(1, Math.max(0, (er - 0.18) / (0.62 - 0.18)));
+      base = base * base * (3 - 2 * base); // smoothstep
+      // asymmetric lift below the name (hero button band), matching the shader
+      var bn = Math.min(1, Math.max(0, (-uy - 0.18) / (0.32 - 0.18)));
+      bn = bn * bn * (3 - 2 * bn);
+      var s = Math.max(base, bn);
       return Math.min(1, sum / 2.4) * (0.12 + 0.88 * s);
     }
 
