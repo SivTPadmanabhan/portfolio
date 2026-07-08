@@ -177,6 +177,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   /* dark smoked glass: mostly opaque, a low level of see-through left
      so the shader/backdrop still reads through the tint */
   background: rgba(5, 7, 12, 0.62);
+}
+
+/* The blur/saturate backdrop only exists where something actually sits
+   behind the glass: the hero (shader) and the flyout panel (page content,
+   declared on .project-overlay__panel). Cards/awards/buttons on the flat
+   black void looked identical with the filter but paid its rasterization
+   cost on every scroll frame. If a non-black backdrop is ever added behind
+   them, restore the filter on .glass. */
+.hero .glass {
   -webkit-backdrop-filter: blur(2px) saturate(1.8);
   backdrop-filter: blur(2px) saturate(1.8);
 }
