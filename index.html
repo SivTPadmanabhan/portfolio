@@ -16,19 +16,9 @@
 </head>
 <body>
 
-  <!-- Lens filter for the liquid glass: main.js injects one feImage
-       (a convex displacement map) per glass element in the hero, then the
-       merged map warps the hero shader behind them (D32) -->
+  <!-- The hero glass lens refraction lives inside the WebGL shader itself
+       (uniforms uploaded by main.js) — no SVG filter on the canvas (D32). -->
   <svg class="glass-defs" aria-hidden="true" focusable="false">
-    <filter id="hero-lens" x="0" y="0" width="100%" height="100%"
-            filterUnits="userSpaceOnUse" primitiveUnits="userSpaceOnUse"
-            color-interpolation-filters="sRGB">
-      <feFlood flood-color="rgb(128,128,128)" result="neutral"/>
-      <feMerge result="dispMap">
-        <feMergeNode in="neutral"/>
-      </feMerge>
-      <feDisplacementMap in="SourceGraphic" in2="dispMap" scale="35" xChannelSelector="R" yChannelSelector="G"/>
-    </filter>
     <!-- Static liquid warble: smooth fractal-noise displacement used as a
          backdrop-filter on the expanded project panel, so the page behind it
          refracts like warped glass (Chromium; degrades to plain blur elsewhere) -->

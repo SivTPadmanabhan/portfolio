@@ -12,6 +12,9 @@
   // Called with the current shader time from inside the one rAF loop.
   var frameHooks = [];
   var heroShaderActive = false; // true once the hero shader is drawing
+  // set by initHeroShader: uploads the glass lens rects (hero-local CSS px)
+  // as shader uniforms so the refraction happens on the GPU (no SVG filter)
+  var heroSetLenses = null;
 
   /* ================================================================
      Shared WebGL scaffolding: fullscreen-triangle shader on a canvas.
@@ -71,7 +74,9 @@
         gl.uniform1f(timeLoc, time);
         gl.drawArrays(gl.TRIANGLES, 0, 3);
       },
-      resize: resize
+      resize: resize,
+      gl: gl,
+      program: program
     };
   }
 
@@ -84,14 +89,22 @@
     var canvas = document.querySelector('.hero-shader');
     if (!canvas) return;
 
+    // Ring math is byte-for-byte the original. The convex-lens refraction
+    // that used to be an SVG feDisplacementMap on the canvas (re-rasterized
+    // by the browser every frame) now runs here on the GPU: same superellipse
+    // map (power 3.5, sin(pow(d,0.8)*PI) curve, 8-bit RG encode, scale 35),
+    // applied by displacing the sample coordinate before the ring evaluation.
     var fragmentSrc =
       '#define TWO_PI 6.2831853072\n' +
       '#define PI 3.14159265359\n' +
       'precision highp float;\n' +
       'uniform vec2 resolution;\n' +
       'uniform float time;\n' +
-      'void main(void) {\n' +
-      '  vec2 uv = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);\n' +
+      'uniform vec4 lens[3];\n' +      // x, y, w, h per glass lens (buffer px, y top-down)
+      'uniform int lensCount;\n' +
+      'uniform float lensScale;\n' +   // feDisplacementMap scale=35, in buffer px
+      'vec3 rings(vec2 fragCoord) {\n' +
+      '  vec2 uv = (fragCoord * 2.0 - resolution.xy) / min(resolution.x, resolution.y);\n' +
       '  float t = time*0.05;\n' +
       '  float lineWidth = 0.002;\n' +
       '  vec3 color = vec3(0.0);\n' +
@@ -103,8 +116,26 @@
       // dim near the center so the name reads without a backdrop: rings
       // start faint, gain intensity fast, and level off past the ellipse
       '  float att = 0.12 + 0.88 * smoothstep(0.18, 0.62, length(uv * vec2(0.62, 1.0)));\n' +
-      '  color *= att;\n' +
-      '  gl_FragColor = vec4(color[0],color[1],color[2],1.0);\n' +
+      '  return color * att;\n' +
+      '}\n' +
+      'void main(void) {\n' +
+      // work in top-down coords so the lens math matches the CSS layout
+      '  vec2 p = vec2(gl_FragCoord.x, resolution.y - gl_FragCoord.y);\n' +
+      '  for (int k = 0; k < 3; k++) {\n' +
+      '    if (k >= lensCount) break;\n' +
+      '    vec4 L = lens[k];\n' +
+      '    if (L.z <= 0.0 || L.w <= 0.0) continue;\n' +
+      '    vec2 n = ((p - L.xy) / L.zw) * 2.0 - 1.0;\n' +
+      '    float d = pow(abs(n.x), 3.5) + pow(abs(n.y), 3.5);\n' +
+      '    if (d <= 1.0) {\n' +
+      // map = 128 + (-n * curve) * 127; disp = (map/255 - 0.5) * scale
+      '      float curve = sin(pow(d, 0.8) * PI);\n' +
+      '      p += (-n * curve) * (127.0 / 255.0) * lensScale;\n' +
+      '      break;\n' + // lenses don't overlap
+      '    }\n' +
+      '  }\n' +
+      '  vec3 color = rings(vec2(p.x, resolution.y - p.y));\n' +
+      '  gl_FragColor = vec4(color, 1.0);\n' +
       '}';
 
     var shader = mountShader(canvas, fragmentSrc);
@@ -112,6 +143,40 @@
 
     var shaderTime = 1.0; // uniform starts at 1.0 in the original
     heroShaderActive = true;
+
+    // lens uniforms: rects arrive in hero-local CSS px from the glass code,
+    // get scaled to buffer px here (the canvas fills the hero exactly)
+    var gl = shader.gl;
+    var lensLoc = gl.getUniformLocation(shader.program, 'lens');
+    var lensCountLoc = gl.getUniformLocation(shader.program, 'lensCount');
+    var lensScaleLoc = gl.getUniformLocation(shader.program, 'lensScale');
+    var lensRectsCss = [];
+
+    function uploadLenses() {
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      var arr = new Float32Array(12);
+      var n = Math.min(3, lensRectsCss.length);
+      for (var i = 0; i < n; i++) {
+        arr[i * 4] = lensRectsCss[i].x * dpr;
+        arr[i * 4 + 1] = lensRectsCss[i].y * dpr;
+        arr[i * 4 + 2] = lensRectsCss[i].w * dpr;
+        arr[i * 4 + 3] = lensRectsCss[i].h * dpr;
+      }
+      gl.uniform4fv(lensLoc, arr);
+      gl.uniform1i(lensCountLoc, n);
+      gl.uniform1f(lensScaleLoc, 35 * dpr);
+    }
+    uploadLenses();
+
+    heroSetLenses = function (rects) {
+      lensRectsCss = rects || [];
+      uploadLenses();
+      if (reducedMotion) shader.draw(40.0); // repaint the frozen frame
+    };
+    window.addEventListener('resize', function () {
+      uploadLenses(); // dpr may change across monitors
+      if (reducedMotion) shader.draw(40.0);
+    }, { passive: true });
 
     if (reducedMotion) {
       shader.draw(40.0); // a pleasing static frame; the glass rims
@@ -148,25 +213,20 @@
   /* ================================================================
      Liquid glass, Apple Tahoe port (D32). Three ported pieces from the
      supplied React component:
-       1. A convex lens displacement map per glass element, merged into
-          the #hero-lens SVG filter that refracts the hero shader.
+       1. A convex lens per glass element in the hero, passed to the hero
+          shader as uniforms so the refraction runs on the GPU.
        2. A directional inset bevel (box-shadow stack) lit from a fixed
           scene light at the hero's top center.
        3. A hairline conic-gradient rim whose bright spots come from
           analyzing the lens map against the light direction.
-     Everything is computed once after load (and on resize): the only
-     per-frame work is the browser re-applying the static filter as the
-     shader canvas redraws, so the motion diet (D26) holds.
+     Everything is computed once after load (and on resize), so the
+     motion diet (D26) holds.
      ================================================================ */
   (function initTahoeGlass() {
     var glasses = Array.prototype.slice.call(document.querySelectorAll('.glass'));
     if (!glasses.length) return;
 
     var hero = document.querySelector('.hero');
-    var heroCanvas = document.querySelector('.hero-shader');
-    var lensFilter = document.getElementById('hero-lens');
-    var SVG_NS = 'http://www.w3.org/2000/svg';
-    var XLINK_NS = 'http://www.w3.org/1999/xlink';
     var BINS = 24;
     var LIGHT = { x: 0.5, y: 0.0 }; // fixed scene light: hero top-center
 
@@ -175,14 +235,8 @@
     function generateConvexMap(width, height) {
       var w = Math.max(1, Math.round(width) || 0);
       var h = Math.max(1, Math.round(height) || 0);
-      var canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      var ctx = canvas.getContext('2d');
-      if (!ctx) return null;
-
-      var imgData = ctx.createImageData(w, h);
-      var data = imgData.data;
+      // RGBA pixel layout kept so analyzeRefraction reads it like image data
+      var data = new Uint8ClampedArray(w * h * 4);
       var power = 3.5;
 
       for (var y = 0; y < h; y++) {
@@ -203,8 +257,9 @@
           data[i + 3] = 255;
         }
       }
-      ctx.putImageData(imgData, 0, 0);
-      return { url: canvas.toDataURL('image/png'), width: w, height: h, data: data };
+      // no rasterized output needed anymore: the shader re-derives the same
+      // map from the lens rect; only the analysis below reads the pixels
+      return { width: w, height: h, data: data };
     }
 
     // How the lens edges catch the scene light: a 24-bin brightness
@@ -438,7 +493,7 @@
 
     function refresh() {
       try {
-        var lensImages = [];
+        var lensRects = [];
         rimTargets = [];
         scrollTargets = [];
 
@@ -479,50 +534,17 @@
             scrollTargets.push({ el: el });
           }
 
-          if (inHero) lensImages.push({ map: map, x: pos.x, y: pos.y, w: w, h: h });
+          if (inHero) lensRects.push({ x: pos.x, y: pos.y, w: w, h: h });
         });
 
-        mountLenses(lensImages);
+        if (heroSetLenses) heroSetLenses(lensRects);
 
         updateScrollRims(); // settle non-hero rims onto the scene light
         if (reducedMotion && heroShaderActive) updateRims(40.0);
       } catch (err) {
         // any failure: skip the refraction, the CSS glass stands alone
-        if (heroCanvas) heroCanvas.style.filter = '';
+        if (heroSetLenses) heroSetLenses([]);
       }
-    }
-
-    // Rebuild the #hero-lens filter: one feImage per glass element in
-    // the hero, merged over the neutral flood, one displacement map.
-    function mountLenses(lensImages) {
-      if (!heroCanvas || !lensFilter || !lensImages.length) return;
-
-      var merge = lensFilter.querySelector('feMerge');
-      if (!merge) return;
-
-      // clear lenses from a previous pass (resize)
-      Array.prototype.slice.call(lensFilter.querySelectorAll('feImage')).forEach(function (n) { n.remove(); });
-      Array.prototype.slice.call(merge.querySelectorAll('feMergeNode')).slice(1).forEach(function (n) { n.remove(); });
-
-      var flood = lensFilter.querySelector('feFlood');
-      lensImages.forEach(function (lens, idx) {
-        var img = document.createElementNS(SVG_NS, 'feImage');
-        img.setAttribute('href', lens.map.url);
-        img.setAttributeNS(XLINK_NS, 'xlink:href', lens.map.url);
-        img.setAttribute('x', lens.x);
-        img.setAttribute('y', lens.y);
-        img.setAttribute('width', lens.w);
-        img.setAttribute('height', lens.h);
-        img.setAttribute('preserveAspectRatio', 'none');
-        img.setAttribute('result', 'lens' + idx);
-        lensFilter.insertBefore(img, flood);
-
-        var node = document.createElementNS(SVG_NS, 'feMergeNode');
-        node.setAttribute('in', 'lens' + idx);
-        merge.appendChild(node);
-      });
-
-      heroCanvas.style.filter = 'url(#hero-lens)';
     }
 
     function start() {
