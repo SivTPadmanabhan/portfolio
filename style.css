@@ -260,20 +260,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
               box-shadow 0.45s ease;
 }
 .btn-glass:hover {
-  transform: scale(1.04);
+  transform: scale(1.02);
   box-shadow:
-    0 0 36px -4px rgba(37, 71, 255, 0.78),
-    0 8px 44px -6px rgba(255, 106, 0, 0.54),
-    0 0 72px -8px rgba(255, 214, 10, 0.34),
+    0 0 36px -4px rgba(37, 71, 255, 0.39),
+    0 8px 44px -6px rgba(255, 106, 0, 0.27),
+    0 0 72px -8px rgba(255, 214, 10, 0.17),
     inset 0 14px 28px -10px rgba(37, 71, 255, 0.35),
     inset 0 -14px 28px -10px rgba(255, 106, 0, 0.30);
 }
 .btn-glass:active {
-  transform: scale(0.96);
+  transform: scale(0.98);
   box-shadow:
-    0 0 42px -3px rgba(37, 71, 255, 0.95),
-    0 8px 50px -5px rgba(255, 106, 0, 0.68),
-    0 0 84px -6px rgba(255, 214, 10, 0.44),
+    0 0 42px -3px rgba(37, 71, 255, 0.475),
+    0 8px 50px -5px rgba(255, 106, 0, 0.34),
+    0 0 84px -6px rgba(255, 214, 10, 0.22),
     inset 0 16px 32px -10px rgba(37, 71, 255, 0.45),
     inset 0 -16px 32px -10px rgba(255, 106, 0, 0.40);
 }
@@ -313,7 +313,7 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   align-items: center;
   gap: var(--space-4);
   padding: 26px max(var(--space-3), calc((100vw - var(--page-max-width)) / 2 + var(--space-3)));
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.4) 60%, transparent 100%);
+  background: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.75) 45%, transparent 100%);
   pointer-events: none;
 }
 .nav a { pointer-events: auto; }
@@ -362,6 +362,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .hero__content {
   position: relative;
   z-index: 1;
+  /* shift the whole block (name + actions) down so the name sits at the
+     center of the shader's dim ellipse rather than above it */
+  transform: translateY(64px);
   padding-block: var(--space-8) var(--space-12);
   width: 100%;
   display: flex;
@@ -463,23 +466,31 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   color: inherit;
   font: inherit;
   cursor: pointer;
-  /* rest = collapsed transparent stack so the hover glow grows in */
+  transform-origin: center;
+  /* rest = collapsed transparent stack so the hover glow grows in, incl.
+     the inset "under glass" layers that grow in like the buttons */
   box-shadow:
     0 0 0 -12px rgba(37, 71, 255, 0),
     0 0 0 -14px rgba(255, 106, 0, 0),
-    0 0 0 -18px rgba(255, 214, 10, 0);
-  transition: transform var(--duration-micro) ease,
+    0 0 0 -18px rgba(255, 214, 10, 0),
+    inset 0 0 0 -12px rgba(37, 71, 255, 0),
+    inset 0 0 0 -12px rgba(255, 106, 0, 0);
+  transition: transform 0.4s cubic-bezier(0.4, 1.5, 0.3, 1),
               background var(--duration-micro) ease,
               box-shadow 0.45s ease;
 }
 .pcard:hover, .award:hover {
-  transform: translateY(-4px);
+  /* springy pop like the buttons, halved (1.02) */
+  transform: scale(1.02);
   background: rgba(18, 22, 32, 0.66);
-  /* same brand glow as the buttons, scaled up and toned down */
+  /* same brand glow as the buttons, scaled up: outward layers dimmed 50%,
+     inset layers glow underneath the glass at full strength */
   box-shadow:
-    0 0 44px -8px rgba(37, 71, 255, 0.38),
-    0 14px 56px -10px rgba(255, 106, 0, 0.26),
-    0 0 88px -14px rgba(255, 214, 10, 0.16);
+    0 0 44px -8px rgba(37, 71, 255, 0.19),
+    0 14px 56px -10px rgba(255, 106, 0, 0.13),
+    0 0 88px -14px rgba(255, 214, 10, 0.08),
+    inset 0 20px 40px -16px rgba(37, 71, 255, 0.32),
+    inset 0 -20px 40px -16px rgba(255, 106, 0, 0.28);
 }
 /* awards look like project cards but do nothing on click */
 .award { cursor: default; }
@@ -710,14 +721,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
               box-shadow 0.45s ease;
 }
 .skills__tag:hover {
-  transform: scale(1.03);
+  transform: scale(1.015);
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
     inset 0 -1px 0 0 rgba(0, 0, 0, 0.28),
     0 1px 2px 0 rgba(0, 0, 0, 0.25),
-    0 0 20px -4px rgba(37, 71, 255, 0.55),
-    0 6px 24px -6px rgba(255, 106, 0, 0.40),
-    0 0 36px -8px rgba(255, 214, 10, 0.25),
+    0 0 20px -4px rgba(37, 71, 255, 0.275),
+    0 6px 24px -6px rgba(255, 106, 0, 0.20),
+    0 0 36px -8px rgba(255, 214, 10, 0.125),
     inset 0 9px 18px -8px rgba(37, 71, 255, 0.38),
     inset 0 -9px 18px -8px rgba(255, 106, 0, 0.32);
 }
