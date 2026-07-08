@@ -490,6 +490,12 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   font: inherit;
   cursor: pointer;
   transform-origin: center;
+  /* cosmetic frosted pane: a faint white veil (weaker than the buttons so a
+     big surface doesn't wash grey). Pure paint — cards sit on the flat black
+     void, so this looks identical to real backdrop frost without the filter
+     cost (see PERF-LOG.md, Perf 4). */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.015)),
+              rgba(0, 0, 0, 0.42);
   /* rest = collapsed transparent stack so the hover glow grows in, incl.
      the inset "under glass" layers that grow in like the buttons */
   box-shadow:
@@ -506,7 +512,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .pcard:hover, .award:hover {
   /* springy pop like the buttons, halved (1.02) */
   transform: scale(1.02);
-  background: rgba(18, 22, 32, 0.66);
+  /* hover lifts the veil a touch brighter than rest */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)),
+              rgba(0, 0, 0, 0.42);
   /* same brand glow as the buttons, scaled up: outward layers dimmed 50%,
      inset layers glow underneath the glass at full strength */
   box-shadow:
