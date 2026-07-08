@@ -725,6 +725,7 @@
 
       if (reducedMotion) {
         overlay.classList.add('show');
+        panel.classList.add('settled'); // warble on immediately (no transition)
         setCardHidden(true);
         closeBtn.focus();
         return;
@@ -746,9 +747,19 @@
       closeBtn.focus();
     }
 
+    // the warble backdrop-filter only turns on once the panel has stopped
+    // moving: animating a turbulence filter across the screen is what made
+    // the flyout laggy. Resting look is unchanged.
+    panel.addEventListener('transitionend', function (e) {
+      if (e.target === panel && !overlay.hidden && !closing) {
+        panel.classList.add('settled');
+      }
+    });
+
     function close() {
       if (overlay.hidden || closing) return;
       document.body.style.overflow = '';
+      panel.classList.remove('settled');
 
       if (reducedMotion || !sourceCard) {
         overlay.classList.remove('show');

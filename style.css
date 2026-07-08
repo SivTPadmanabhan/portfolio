@@ -317,8 +317,10 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   padding-block: 16px;
   padding-inline: max(var(--space-3), calc((100vw - var(--page-max-width)) / 2 + var(--space-3)));
   background: rgba(0, 0, 0, 0.42);
-  -webkit-backdrop-filter: blur(12px) saturate(1.4);            /* Safari: blur only */
-  backdrop-filter: blur(12px) saturate(1.4) url(#glass-warble); /* Chromium: + warble */
+  /* plain blur only: a warble (turbulence) backdrop-filter here forced the
+     browser to re-filter the backdrop continuously over the animating hero */
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
 }
 
@@ -589,13 +591,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   transition: transform 0.5s var(--ease-glide), opacity 0.5s ease;
   will-change: transform;
   /* dark, see-through glass that refracts the page behind it. The url() warble
-     is Chromium-only; Safari/Firefox fall back to the plain blur (still glass) */
+     is Chromium-only; Safari/Firefox fall back to the plain blur (still glass).
+     The warble only applies once the panel has settled (.settled, added by
+     main.js after the open transition) so the fly-out/fly-back animation isn't
+     dragging a turbulence filter across the screen every frame. */
   background: rgba(0, 0, 0, 0.5);
   -webkit-backdrop-filter: blur(7px) saturate(1.4);
-  backdrop-filter: blur(7px) saturate(1.4) url(#glass-warble);
+  backdrop-filter: blur(7px) saturate(1.4);
   /* slim, contained scrollbar instead of the browser default (Firefox) */
   scrollbar-width: thin;
   scrollbar-color: rgba(152, 160, 184, 0.45) transparent;
+}
+.project-overlay__panel.settled {
+  -webkit-backdrop-filter: blur(7px) saturate(1.4);
+  backdrop-filter: blur(7px) saturate(1.4) url(#glass-warble);
 }
 /* slim, contained scrollbar (WebKit) */
 .project-overlay__panel::-webkit-scrollbar { width: 8px; }
