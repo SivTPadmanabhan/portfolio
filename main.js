@@ -624,6 +624,66 @@
   })();
 
   /* ================================================================
+     Touch press feedback (touch devices only). Desktop keeps its CSS
+     :hover (gated behind @media (hover:hover)); on a touchscreen that
+     hover would stick, so here we drive the lit state from JS instead:
+       - any tapped glass element lights up (.is-lit) and auto-clears
+         after 3s (so a tapped card/award/button doesn't stay lit);
+       - cards/awards get a slight scale-up "expand" cue while held;
+       - buttons/pills do a subtle one-shot wiggle on press.
+     Visual only — no vibration (unsupported on iOS; kept uniform).
+     ================================================================ */
+  (function initTouchFeedback() {
+    if (!window.matchMedia('(hover: none) and (pointer: coarse)').matches) return;
+
+    var LIT_MS = 3000;
+
+    function isCard(el) {
+      return el.classList.contains('pcard') || el.classList.contains('award');
+    }
+
+    function light(el) {
+      el.classList.add('is-lit');
+      if (el._litTimer) clearTimeout(el._litTimer);
+      el._litTimer = setTimeout(function () {
+        el.classList.remove('is-lit');
+        el._litTimer = null;
+      }, LIT_MS);
+    }
+
+    document.addEventListener('pointerdown', function (e) {
+      var el = e.target.closest ?
+        e.target.closest('.pcard, .award, .btn-glass, .skills__tag') : null;
+      if (!el) return;
+
+      light(el);
+      if (reducedMotion) return;
+
+      el.classList.add('is-pressed');
+      if (isCard(el)) {
+        // scale cue holds until the finger lifts (then the click opens the flyout)
+        var release = function () {
+          el.classList.remove('is-pressed');
+          el.removeEventListener('pointerup', release);
+          el.removeEventListener('pointercancel', release);
+          el.removeEventListener('pointerleave', release);
+        };
+        el.addEventListener('pointerup', release);
+        el.addEventListener('pointercancel', release);
+        el.addEventListener('pointerleave', release);
+      } else {
+        // wiggle is a one-shot animation: drop the class when it ends so a
+        // repeat tap replays it
+        var end = function () {
+          el.classList.remove('is-pressed');
+          el.removeEventListener('animationend', end);
+        };
+        el.addEventListener('animationend', end);
+      }
+    }, { passive: true });
+  })();
+
+  /* ================================================================
      Hero phrase rotator (D31): scrolls through the intro phrases once
      after load and settles on the name. One-shot, never loops (D26).
      ================================================================ */

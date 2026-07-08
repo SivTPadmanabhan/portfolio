@@ -273,8 +273,20 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   transition: transform 0.4s cubic-bezier(0.4, 1.5, 0.3, 1),
               box-shadow 0.45s ease;
 }
-.btn-glass:hover {
-  transform: scale(1.02);
+/* lit glow shared by desktop hover and the JS touch state (.is-lit); hover
+   gated so it can't stick on a touchscreen */
+@media (hover: hover) {
+  .btn-glass:hover {
+    transform: scale(1.02);
+    box-shadow:
+      0 0 36px -4px rgba(37, 71, 255, 0.39),
+      0 8px 44px -6px rgba(255, 106, 0, 0.27),
+      0 0 72px -8px rgba(255, 214, 10, 0.17),
+      inset 0 14px 28px -10px rgba(37, 71, 255, 0.35),
+      inset 0 -14px 28px -10px rgba(255, 106, 0, 0.30);
+  }
+}
+.btn-glass.is-lit {
   box-shadow:
     0 0 36px -4px rgba(37, 71, 255, 0.39),
     0 8px 44px -6px rgba(255, 106, 0, 0.27),
@@ -315,6 +327,19 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 @keyframes liquid-ripple {
   0% { transform: translate(-50%, -50%) scale(0); opacity: 0.7; }
   100% { transform: translate(-50%, -50%) scale(6); opacity: 0; }
+}
+
+/* Touch press feedback for non-card glass (buttons, skill pills): a slight
+   shimmy on press (JS adds .is-pressed on pointerdown). Deliberately subtle. */
+@keyframes glass-wiggle {
+  0%   { transform: rotate(0deg) translateX(0); }
+  25%  { transform: rotate(-1.6deg) translateX(-1.5px); }
+  55%  { transform: rotate(1.6deg) translateX(1.5px); }
+  80%  { transform: rotate(-0.8deg) translateX(-0.5px); }
+  100% { transform: rotate(0deg) translateX(0); }
+}
+.btn-glass.is-pressed, .skills__tag.is-pressed {
+  animation: glass-wiggle 0.26s ease-in-out;
 }
 
 /* ---------- Navigation (a single liquid glass bar) ---------- */
@@ -471,7 +496,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .pcards {
   margin-top: var(--space-8);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  /* min(320px, 100%) so the track never exceeds the container on a narrow
+     phone (a hard 320px min overflowed right, pushing cards off-center) */
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: var(--space-3);
 }
 
@@ -509,14 +536,32 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
               box-shadow 0.45s ease,
               opacity 0.5s ease;
 }
-.pcard:hover, .award:hover {
-  /* springy pop like the buttons, halved (1.02) */
-  transform: scale(1.02);
-  /* hover lifts the veil a touch brighter than rest */
+/* Lit look (glow + brighter veil) shared by desktop hover and the JS-driven
+   touch state (.is-lit, auto-cleared after 3s on tap). Hover is gated behind
+   (hover:hover) so it never sticks on a touchscreen. */
+@media (hover: hover) {
+  .pcard:hover, .award:hover {
+    /* springy pop like the buttons, halved (1.02) */
+    transform: scale(1.02);
+    /* hover lifts the veil a touch brighter than rest */
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)),
+                rgba(0, 0, 0, 0.42);
+    /* same brand glow as the buttons, scaled up: outward layers dimmed 50%,
+       inset layers glow underneath the glass at full strength */
+    box-shadow:
+      0 0 44px -8px rgba(37, 71, 255, 0.285),
+      0 14px 56px -10px rgba(255, 106, 0, 0.195),
+      0 0 88px -14px rgba(255, 214, 10, 0.12),
+      inset 0 20px 40px -16px rgba(37, 71, 255, 0.32),
+      inset 0 -20px 40px -16px rgba(255, 106, 0, 0.28);
+  }
+  .pcard:hover .pcard__name { color: var(--color-neon-amber); }
+  .pcard:hover .pcard__more { color: var(--color-chalk); transform: rotate(90deg); }
+  .award:hover .award__title { color: var(--color-neon-amber); }
+}
+.pcard.is-lit, .award.is-lit {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)),
               rgba(0, 0, 0, 0.42);
-  /* same brand glow as the buttons, scaled up: outward layers dimmed 50%,
-     inset layers glow underneath the glass at full strength */
   box-shadow:
     0 0 44px -8px rgba(37, 71, 255, 0.285),
     0 14px 56px -10px rgba(255, 106, 0, 0.195),
@@ -524,9 +569,14 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     inset 0 20px 40px -16px rgba(37, 71, 255, 0.32),
     inset 0 -20px 40px -16px rgba(255, 106, 0, 0.28);
 }
+.pcard.is-lit .pcard__name { color: var(--color-neon-amber); }
+.pcard.is-lit .pcard__more { color: var(--color-chalk); transform: rotate(90deg); }
+.award.is-lit .award__title { color: var(--color-neon-amber); }
+/* press cue on touch: a slightly stronger pop so a card reads as "expanding
+   out" before the flyout opens (overrides the rest transform) */
+.pcard.is-pressed, .award.is-pressed { transform: scale(1.04); }
 /* awards look like project cards but do nothing on click */
 .award { cursor: default; }
-.award:hover .award__title { color: var(--color-neon-amber); }
 
 .pcard__num {
   font-family: var(--font-mono);
@@ -543,7 +593,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   line-height: 1.15;
   transition: color var(--duration-micro) ease;
 }
-.pcard:hover .pcard__name { color: var(--color-neon-amber); }
 .pcard__name-sub {
   color: var(--color-dim);
   font-size: 0.62em;
@@ -582,7 +631,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   line-height: 1;
   transition: color var(--duration-micro) ease, transform var(--duration-micro) ease;
 }
-.pcard:hover .pcard__more { color: var(--color-chalk); transform: rotate(90deg); }
 
 /* ---------- Project flyout: card expands front and center (D35) ---------- */
 .project-overlay {
@@ -766,8 +814,21 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   transition: transform 0.4s cubic-bezier(0.4, 1.5, 0.3, 1),
               box-shadow 0.45s ease;
 }
-.skills__tag:hover {
-  transform: scale(1.015);
+@media (hover: hover) {
+  .skills__tag:hover {
+    transform: scale(1.015);
+    box-shadow:
+      inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
+      inset 0 -1px 0 0 rgba(0, 0, 0, 0.28),
+      0 1px 2px 0 rgba(0, 0, 0, 0.25),
+      0 0 20px -4px rgba(37, 71, 255, 0.275),
+      0 6px 24px -6px rgba(255, 106, 0, 0.20),
+      0 0 36px -8px rgba(255, 214, 10, 0.125),
+      inset 0 9px 18px -8px rgba(37, 71, 255, 0.38),
+      inset 0 -9px 18px -8px rgba(255, 106, 0, 0.32);
+  }
+}
+.skills__tag.is-lit {
   box-shadow:
     inset 0 1px 0 0 rgba(255, 255, 255, 0.14),
     inset 0 -1px 0 0 rgba(0, 0, 0, 0.28),
@@ -783,7 +844,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 .awards {
   margin-top: var(--space-8);
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  /* min(320px, 100%) so the track never exceeds the container on a narrow phone */
+  grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr));
   gap: var(--space-3);
 }
 /* .award shares the .pcard base + hover rules above; layout/spacing come from there */
@@ -896,6 +958,37 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .nav__links a { font-size: 12px; }
   .hero__content { padding-block: var(--space-12); padding-top: calc(var(--space-16) + var(--hero-shift) * 2); }
   .hero__name { font-size: clamp(21px, 6.6vw, 30px); }
+
+  /* Flyout: fit everything neatly on a phone. Cap the panel height to the
+     dynamic viewport (minus the nav padding + a margin) and let its internal
+     overflow-y:auto scrollbar do the work; tighten padding. */
+  .project-overlay { padding: var(--space-2); padding-top: 80px; }
+  .project-overlay__panel {
+    width: 94vw;
+    max-height: min(85vh, 100dvh - 116px);
+    padding: var(--space-4) var(--space-3);
+  }
+  /* buttons wrap within the panel instead of spilling sideways */
+  .project-overlay__body .btn-glass,
+  .project-overlay__cta .btn-glass {
+    white-space: normal;
+    max-width: 100%;
+    padding: 12px 20px;
+    text-align: center;
+  }
+  .project-overlay__body .btn-glass .btn-glass__label,
+  .project-overlay__cta .btn-glass .btn-glass__label {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 6px;
+  }
+  /* stack multi-CTA rows full-width so each fits the panel */
+  .project-overlay__cta {
+    flex-direction: column;
+    align-items: stretch;
+    gap: var(--space-2);
+  }
+  .project-overlay__body .btn-glass { justify-self: stretch; align-self: stretch; }
 }
 
 /* ---------- Reduced motion ---------- */
@@ -907,5 +1000,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   .project-overlay__panel { transition: none; }
   .btn-glass__ripple { animation: none; opacity: 0; }
   .rotator__list { transition: none; }
+  /* touch press cues: keep the lit glow, drop the motion */
+  .pcard.is-pressed, .award.is-pressed { transform: none; }
+  .btn-glass.is-pressed, .skills__tag.is-pressed { animation: none; }
   * { transition-duration: 0.01ms !important; }
 }
