@@ -125,14 +125,24 @@
       }, { threshold: 0 }).observe(canvas);
     }
 
-    (function loop() {
+    // time-based clock: 3.0/s matches the original 0.05-per-frame at 60fps,
+    // so the speed no longer depends on refresh rate or dropped frames. The
+    // delta is clamped so the clock effectively pauses while off-screen.
+    var lastTs = null;
+    function loop(ts) {
       if (visible) {
-        shaderTime += 0.05; // original increment
-        shader.draw(shaderTime);
-        for (var i = 0; i < frameHooks.length; i++) frameHooks[i](shaderTime);
+        if (lastTs !== null) {
+          shaderTime += Math.min((ts - lastTs) / 1000, 0.1) * 3.0;
+          shader.draw(shaderTime);
+          for (var i = 0; i < frameHooks.length; i++) frameHooks[i](shaderTime);
+        }
+        lastTs = ts;
+      } else {
+        lastTs = null;
       }
       requestAnimationFrame(loop);
-    })();
+    }
+    requestAnimationFrame(loop);
   })();
 
   /* ================================================================
