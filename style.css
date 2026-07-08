@@ -186,8 +186,9 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
    cost on every scroll frame. If a non-black backdrop is ever added behind
    them, restore the filter on .glass. */
 .hero .glass {
-  -webkit-backdrop-filter: blur(2px) saturate(1.8);
-  backdrop-filter: blur(2px) saturate(1.8);
+  /* frosted pane, matching the nav: the rings diffuse softly through */
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
 }
 
 .glass::before {
@@ -605,15 +606,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
      main.js after the open transition) so the fly-out/fly-back animation isn't
      dragging a turbulence filter across the screen every frame. */
   background: rgba(0, 0, 0, 0.5);
-  -webkit-backdrop-filter: blur(7px) saturate(1.4);
-  backdrop-filter: blur(7px) saturate(1.4);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4);
   /* slim, contained scrollbar instead of the browser default (Firefox) */
   scrollbar-width: thin;
   scrollbar-color: rgba(152, 160, 184, 0.45) transparent;
 }
 .project-overlay__panel.settled {
-  -webkit-backdrop-filter: blur(7px) saturate(1.4);
-  backdrop-filter: blur(7px) saturate(1.4) url(#glass-warble);
+  -webkit-backdrop-filter: blur(12px) saturate(1.4);
+  backdrop-filter: blur(12px) saturate(1.4) url(#glass-warble);
 }
 /* slim, contained scrollbar (WebKit) */
 .project-overlay__panel::-webkit-scrollbar { width: 8px; }
