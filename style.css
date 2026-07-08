@@ -259,7 +259,11 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   text-transform: uppercase;
   color: var(--color-chalk);
   transform-origin: center;
-  background: rgba(5, 7, 12, 0.62);
+  /* frosted-pane tint: a faint white veil over a light dark smoke. Over the
+     hero shader the veil + blur read as milky frost; over the black void the
+     veil alone paints the same soft grey pane (no backdrop-filter needed). */
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.02)),
+              rgba(0, 0, 0, 0.42);
   box-shadow:
     0 0 0 -6px rgba(37, 71, 255, 0),
     0 0 0 -8px rgba(255, 106, 0, 0),
