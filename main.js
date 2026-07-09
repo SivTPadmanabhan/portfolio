@@ -579,7 +579,10 @@
             scrollTargets.push({ el: el });
           }
 
-          if (inHero) lensRects.push({ x: pos.x, y: pos.y, w: w, h: h });
+          // hero buttons frost the shader flatly (like the nav) — no lens
+          // refraction. Keep them as bevel/rim targets above; just don't
+          // refract behind them.
+          if (inHero && !el.classList.contains('btn-glass')) lensRects.push({ x: pos.x, y: pos.y, w: w, h: h });
         });
 
         if (heroSetLenses) heroSetLenses(lensRects);
