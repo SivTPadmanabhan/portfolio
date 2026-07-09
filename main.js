@@ -617,23 +617,6 @@
   })();
 
   /* ================================================================
-     Release each .rise element's filled entrance animation when it
-     ends — the active opacity animation forms a backdrop root that
-     blocks backdrop-filter on descendants (the hero buttons' frost).
-     ================================================================ */
-  (function initRiseRelease() {
-    document.querySelectorAll('.rise').forEach(function (el) {
-      var done = function () { el.classList.add('rise-done'); };
-      el.addEventListener('animationend', done, { once: true });
-      // timer fallback in case the event is missed (hidden tab, etc.);
-      // under reduced motion the animation is none → 0s → no timer needed
-      var cs = getComputedStyle(el);
-      var ms = (parseFloat(cs.animationDelay) || 0) + (parseFloat(cs.animationDuration) || 0);
-      if (ms > 0) setTimeout(done, ms * 1000 + 250);
-    });
-  })();
-
-  /* ================================================================
      Glass button click ripple (hover/click only, D26)
      ================================================================ */
   (function initGlassRipples() {

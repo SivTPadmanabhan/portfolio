@@ -948,11 +948,6 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
   animation-delay: var(--d, 0s);
 }
 @keyframes rise-in { to { opacity: 1; transform: translateY(0); } }
-/* main.js adds .rise-done on animationend: releases the filled opacity
-   animation, which otherwise makes the element a backdrop root and kills
-   backdrop-filter on descendants (the hero buttons' frost). Values match
-   the animation's end state exactly, so nothing moves. */
-.rise.rise-done { animation: none; opacity: 1; transform: none; }
 
 .reveal {
   opacity: 0;
